@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: user-service
+
+  data:
+    mongodb:
+      uri: mongodb+srv://${DB_USER_MONGO}:${DB_PASSWORD_MONGO}@${DB_HOST_MONGO}}/${COLLECTION_NAME_MONGO}?retryWrites=true&w=majority&appName=Cluster0
+  # Reactive PostgreSQL via R2DBC
+  r2dbc:
+    url: r2dbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_SCHEMA_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  # WebFlux server port
+  webflux:
+    base-path: /api
+  main:
+    allow-bean-definition-overriding: true
+
+  # Security & JWT
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWT_JWK_SET_URI:https://auth.example.com/.well-known/jwks.json}
+
+jwt:
+  issuer: ${JWT_ISSUER:https://auth.example.com}
+  secret: ${JWT_SECRET:ChangeThisSecretToAStrongOne}
+  expiration-seconds: 3600
+
+logging:
+  # default logging level
+  level:
+    root: INFO
+    com.swiftlyglobal.user: DEBUG
+  # log file location
+  file:
+    name: logs/user-service.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
+  endpoint:
+    health:
+      show-details: always

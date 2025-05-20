@@ -28,8 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<vavr.version>0.10.4</vavr.version>
 		<jsonwebtoken.version>0.12.6</jsonwebtoken.version>
+		<mapstruct.version>1.6.3</mapstruct.version>
+		<springdoc.version>1.8.0</springdoc.version>
 	</properties>
 	<dependencies>
 		<!-- Spring Reactive & Security -->
@@ -40,6 +41,18 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<!-- 1. Actuator for health & metrics endpoints -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- 2. OAuth2 Resource Server (JWT validation integration) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 
 		<!-- Reactive Data -->
@@ -57,11 +70,43 @@
 			<artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
 		</dependency>
 
-		<!-- Functional-style support: Vavr -->
+		<!-- 4. MapStruct for DTO ↔ entity mapping -->
 		<dependency>
-			<groupId>io.vavr</groupId>
-			<artifactId>vavr</artifactId>
-			<version>${vavr.version}</version>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>${mapstruct.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- 5. Lombok to reduce boilerplate -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- 6. Caching support (if you’ll cache profiles or tokens) -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+
+		<!-- 7. OpenAPI / Swagger UI for reactive endpoints -->
+		<dependency>
+		     <groupId>org.springdoc</groupId>
+		     <artifactId>springdoc-openapi-webflux-ui</artifactId>
+		     <version>${springdoc.version}</version>
+		</dependency>
+
+		<!-- Validation API for DTOs and domain -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
 		<!-- Reactor Test (for Flux/Mono testing) -->
@@ -114,6 +159,20 @@
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 				</configuration>
+			</plugin>
+			<!-- enable MapStruct annotation processing -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<annotationProcessorPaths>
+				           	<path>
+			             		<groupId>org.mapstruct</groupId>
+			             		<artifactId>mapstruct-processor</artifactId>
+			              		<version>${mapstruct.version}</version>
+			            	</path>
+			          </annotationProcessorPaths>
+			        </configuration>
 			</plugin>
 		</plugins>
 	</build>
