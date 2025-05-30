@@ -23,29 +23,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<UserModel> register(RegisterUserRequest request) {
+
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
         return userRepository.existsByEmail(request.getEmail())
                 .flatMap(exists -> {
                     if (exists) {
+                        log.warn("Attempt to register with already used email: {}", request.getEmail());
                         return Mono.error(new EmailAlreadyInUseException(request.getEmail()));
                     }
                     var user = mapper.toEntity(UserModel.builder()
                             .email(request.getEmail())
-                            .passwordHash(passwordEncoder.encode(request.getPassword()))
+                            .passwordHash(encodedPassword)
                             .firstName(request.getFirstName())
                             .lastName(request.getLastName())
                             .build());
 
                     return userRepository
-                            .save(user)
-                            .doOnSuccess(savedUser -> {
-                                // Log successful user registration
-                                log.info("User registered successfully: {}", savedUser.getEmail());
-                            })
-                            .doOnError(error -> {
-                                // Log error during user registration
-                                log.error("Error registering user: {}", error.getMessage());
-                            })
-                            .map(mapper::toDomain);
-        });
+                            .save(user);
+        })
+                .doOnSuccess(savedUser ->
+                        log.info("User registered successfully: {}", savedUser.getEmail()))
+                .doOnError(error ->
+                        log.error("Error registering user for email {}: {}", request.getEmail(), error.getMessage()))
+                .map(mapper::toDomain);
     }
 }
