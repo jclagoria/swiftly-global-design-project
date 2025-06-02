@@ -6,8 +6,8 @@ import lombok.*;
 
 @Builder
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class RegisterUserRequest {
 
     @NotBlank @Email

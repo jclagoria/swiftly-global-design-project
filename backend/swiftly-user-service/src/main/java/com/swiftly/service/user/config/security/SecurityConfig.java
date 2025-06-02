@@ -15,19 +15,28 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain openEndpoints(ServerHttpSecurity http) {
         // build a composite matcher that fires on any of these paths:
+        // NOTE: we use ServerWebExchangeMatchers to create a matcher that supports multiple paths
+        //       in a way that is compatible with the reactive web framework.
+        //       This allows us to specify paths that should be open without requiring authentication.
         var openPaths = ServerWebExchangeMatchers.matchers(
-                ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST,   "/api/v1/users/register"),
-                ServerWebExchangeMatchers.pathMatchers("/v3/api-docs/**"),
-                ServerWebExchangeMatchers.pathMatchers("/swagger-ui/**"),
-                ServerWebExchangeMatchers.pathMatchers("/swagger-ui.html")
+                // 1) Allow unauthenticated user registration:
+                ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, "/api/v1/users/register"),
+
+                // 2) Allow the raw OpenAPI JSON:
+                ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/v3/api-docs/**"),
+
+                // 3) Allow the Swagger-UI redirect + static assets:
+                ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/swagger-ui.html"),
+                ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/swagger-ui/**"),
+                ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/webjars/**")
+
         );
 
         return http
-                .securityMatcher(openPaths)               // use only when one of those paths matches
+                .securityMatcher(openPaths)
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(ServerHttpSecurity.CorsSpec::disable)
                 .authorizeExchange(ex -> ex.anyExchange().permitAll())
-                // disable any other auth filters so JWT isn’t applied here:
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .logout(ServerHttpSecurity.LogoutSpec::disable)
