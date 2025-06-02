@@ -21,10 +21,14 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
+    /**
+     * The secret key used to sign the JWT tokens.
+     * This should be kept secret and secure.
+     */
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration-seconds}")
     private long jwtExpiration;
 
     private SecretKey signingKey;
