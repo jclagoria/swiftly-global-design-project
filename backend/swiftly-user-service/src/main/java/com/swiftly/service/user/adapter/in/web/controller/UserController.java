@@ -1,5 +1,6 @@
 package com.swiftly.service.user.adapter.in.web.controller;
 
+import com.swiftly.service.user.adapter.in.web.dto.UserCreationResponse;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.application.port.in.UserService;
 import com.swiftly.service.user.domain.model.UserModel;
@@ -12,8 +13,12 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriBuilderFactory;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
 
 @Tag(
         name = "User Service",
@@ -95,7 +100,12 @@ public class UserController {
     )
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<UserModel> register(@Valid @RequestBody RegisterUserRequest request) {
-        return userService.register(request);
+    public Mono<UserCreationResponse> register(
+            @Valid @RequestBody RegisterUserRequest request
+    ) {
+        return userService.register(request).map(createdUser -> new UserCreationResponse(
+                        "User registered successfully",
+                        createdUser.getId()
+                ));
     }
 }
