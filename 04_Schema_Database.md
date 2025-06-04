@@ -27,10 +27,10 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 ALTER TABLE users
     ALTER COLUMN id
         SET DEFAULT gen_random_uuid();
-```
+
 ## 2. user_profiles
 
-```sql
+``` sql
 CREATE TABLE user_profiles (
     user_id UUID PRIMARY KEY
         REFERENCES users(id)
@@ -47,7 +47,7 @@ CREATE TABLE user_profiles (
 
 ```sql
 CREATE TABLE transactions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     user_id UUID NOT NULL
         REFERENCES users(id)
         ON DELETE CASCADE,
@@ -63,7 +63,7 @@ CREATE TABLE transactions (
 
 ```sql
 CREATE TABLE payment_providers (
-    id SERIAL PRIMARY KEY DEFAULT gen_random_uuid(),
+    id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     config JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
