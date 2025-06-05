@@ -21,6 +21,7 @@ public class SecurityConfig {
         var openPaths = ServerWebExchangeMatchers.matchers(
                 // 1) Allow unauthenticated user registration:
                 ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, "/api/v1/users/register"),
+                ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, "/api/v1/users/login"),
 
                 // 2) Allow the raw OpenAPI JSON:
                 ServerWebExchangeMatchers.pathMatchers(HttpMethod.GET, "/v3/api-docs/**"),

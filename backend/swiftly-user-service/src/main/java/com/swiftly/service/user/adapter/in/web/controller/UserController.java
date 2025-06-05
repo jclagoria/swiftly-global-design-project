@@ -1,6 +1,9 @@
 package com.swiftly.service.user.adapter.in.web.controller;
 
+import com.swiftly.service.user.api.dto.LoginRequest;
+import com.swiftly.service.user.api.dto.LoginResponse;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
+import com.swiftly.service.user.api.dto.UserCreationResponse;
 import com.swiftly.service.user.application.port.in.UserService;
 import com.swiftly.service.user.domain.model.UserModel;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,7 +58,7 @@ public class UserController {
                             description = "User successfully registered",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                                    schema = @Schema(implementation = UserModel.class)
+                                    schema = @Schema(implementation = UserCreationResponse.class)
                             )
                     ),
                     @ApiResponse(
@@ -95,7 +98,61 @@ public class UserController {
     )
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<UserModel> register(@Valid @RequestBody RegisterUserRequest request) {
-        return userService.register(request);
+    public Mono<UserCreationResponse> register(
+            @Valid @RequestBody RegisterUserRequest request
+    ) {
+        return userService.register(request)
+                .map(createdUser -> new UserCreationResponse(
+                        "User registered successfully",
+                        createdUser.getId()
+                ));
+    }
+
+    @Operation(
+            summary = "Authenticate user and issue JWT",
+            description = "Validates the provided email and password. On success, returns a JWT token.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "JSON payload to log a user in",
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = LoginRequest.class)
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Login successful; JWT returned",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = LoginResponse.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Invalid email or password",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(
+                                            example = """
+                        {
+                          "code": "INVALID_CREDENTIALS",
+                          "message": "Invalid email or password"
+                        }
+                        """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Malformed request (e.g., missing fields)",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+                    )
+            }
+    )
+    @PostMapping("/login")
+    public Mono<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return userService.login(request)
+                .map(LoginResponse::new);
     }
 }
