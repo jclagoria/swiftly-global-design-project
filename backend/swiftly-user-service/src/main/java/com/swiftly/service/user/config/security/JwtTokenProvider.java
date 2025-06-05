@@ -2,14 +2,17 @@ package com.swiftly.service.user.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
+
+import static io.jsonwebtoken.Jwts.*;
 
 /**
  * Utility for creating JWT tokens.
@@ -33,73 +36,83 @@ public class JwtTokenProvider {
 
     private SecretKey signingKey;
 
+    @PostConstruct
     public void init() {
         this.signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Creates a JWT token containing the given subject (usually the username).
+     *
+     * @param subject the subject (username) to include in the JWT token
+     * @return the generated JWT token
+     */
     public String createToken(String subject) {
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + jwtExpiration);
-        return io.jsonwebtoken.Jwts.builder()
+        // The current instant
+        Instant now = Instant.now();
+
+        // The expiration instant
+        Instant expirationInstant = now.plusSeconds(jwtExpiration);
+
+        return builder()
+                // The subject of the token
                 .subject(subject)
-                .issuedAt(now)
-                .expiration(expiration)
-                // you can add additional claims here if you want:
+                // The time the token was issued
+                .issuedAt(Date.from(now))
+                // The time the token will expire
+                .expiration(Date.from(expirationInstant))
+                // You can add additional claims here if you want, e.g. roles
                 // .claim("roles", rolesList)
-                .signWith(signingKey, SignatureAlgorithm.HS256)
+                // .claim("permissions", permissionsList)
+                // Sign the token using the secret key
+                .signWith(signingKey, SIG.HS256)
+                // Compact the token to a string
                 .compact();
     }
 
     /**
      * Retrieves the subject (usually the username) from the token.
+     *
      * @param token the JWT token
      * @return the subject (username)
      */
     public String getSubject(String token) {
-        // Parse the token and extract the subject (username)
         Claims claims = Jwts.parser()
-                .setSigningKey(signingKey)
+                .verifyWith(signingKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
         return claims.getSubject();
     }
 
     /**
-     * Validate the given token, returning true if valid, false if invalid.
-     *
-     * Note that invalid tokens will throw an exception, which is caught and
-     * handled here.
+     * Validates the given token, returning true if valid, false otherwise.
      *
      * @param token the JWT token
      * @return true if the token is valid, false if it is not
      */
     public boolean validateToken(String token) {
         try {
-            // Attempt to parse the token. If it is invalid, this will throw an exception.
             Jwts.parser()
-                    .setSigningKey(signingKey)
+                    .verifyWith(signingKey)
                     .build()
-                    .parseClaimsJws(token);
+                    .parseSignedClaims(token);  // throws if invalid
             return true;
         } catch (Exception e) {
-            // If the token is invalid, return false
             return false;
         }
     }
 
     /**
-     * If you want to examine claims later, you can parse the token and extract the claims.
+     * Parses and returns claims from the JWT token.
      *
      * @param token the JWT token
      * @return the claims extracted from the token
      */
     public Claims parseClaims(String token) {
-        // Parse the token and extract the claims
-        return Jwts.parser()
-                .setSigningKey(signingKey)
+        return parser()
+                .verifyWith(signingKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token).getPayload();
     }
 }

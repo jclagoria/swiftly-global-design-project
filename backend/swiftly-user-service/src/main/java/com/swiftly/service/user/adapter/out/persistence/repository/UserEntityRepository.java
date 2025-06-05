@@ -7,5 +7,19 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 public interface UserEntityRepository extends R2dbcRepository<UserEntity, UUID> {
+    /**
+     * Check if a user exists with the given email.
+     *
+     * @param email the email to check
+     * @return a Mono that emits a boolean indicating whether the user exists
+     */
     Mono<Boolean> existsByEmail(String email);
+
+    /**
+     * Retrieve a user by their email.
+     *
+     * @param email the email to query by
+     * @return a Mono that emits the matching UserEntity
+     */
+    Mono<UserEntity> findByEmail(String email);
 }

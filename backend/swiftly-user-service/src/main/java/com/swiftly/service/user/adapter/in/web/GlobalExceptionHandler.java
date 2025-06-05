@@ -1,6 +1,7 @@
 package com.swiftly.service.user.adapter.in.web;
 
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
+import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,6 +25,23 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public Mono<ErrorResponse> handleEmailExists(EmailAlreadyInUseException e) {
         return Mono.just(new ErrorResponse(e.getMessage(), "EMAIL_ALREADY_IN_USE"));
+    }
+
+    /**
+     * Handles InvalidCredentialsException, which is thrown by the UserService
+     * when the user-provided credentials are invalid.
+     *
+     * @param ex the InvalidCredentialsException thrown during login
+     * @return a Mono containing an ErrorResponse with the error details
+     */
+    @ExceptionHandler(InvalidCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Mono<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
+        // Return a generic error response with the exception's message
+        return Mono.just(new ErrorResponse(
+                "INVALID_CREDENTIALS",
+                ex.getMessage()
+        ));
     }
 
     /**
