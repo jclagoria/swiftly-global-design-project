@@ -5,7 +5,6 @@ import com.swiftly.service.user.api.dto.LoginResponse;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.api.dto.UserCreationResponse;
 import com.swiftly.service.user.application.port.in.UserService;
-import com.swiftly.service.user.domain.model.UserModel;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -154,5 +153,46 @@ public class UserController {
     public Mono<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return userService.login(request)
                 .map(LoginResponse::new);
+    }
+
+    /**
+     * Logs out the user by invalidating the JWT token.
+     *
+     * @param authHeader the JWT token to invalidate
+     * @return a Mono that completes when the logout is successful
+     */
+    @Operation(
+            summary = "Logs out the user",
+            description = "Logs out the user by invalidating the JWT token. The JWT token is expected to be passed in the Authorization header.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "204",
+                            description = "Logout successful"
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Invalid JWT token",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(
+                                            example = """
+                        {
+                          "code": "INVALID_JWT",
+                          "message": "Invalid JWT token"
+                        }
+                        """
+                                    )
+                            )
+                    )
+            }
+    )
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return Mono.error(new IllegalArgumentException("Missing or invalid Authorization header"));
+        }
+        String token = authHeader.substring(7);
+        return userService.logout(token);
     }
 }

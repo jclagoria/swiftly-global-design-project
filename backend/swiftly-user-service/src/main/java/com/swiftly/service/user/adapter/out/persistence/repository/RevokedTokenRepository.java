@@ -1,0 +1,17 @@
+package com.swiftly.service.user.adapter.out.persistence.repository;
+
+import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEntity;
+import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import reactor.core.publisher.Mono;
+
+public interface RevokedTokenRepository extends R2dbcRepository<RevokedTokenEntity, String> {
+
+    /**
+     * Check if a revoked token exists in the database with the given token value.
+     *
+     * @param token the value of the token to check
+     * @return a Mono that emits a boolean indicating whether the token exists
+     */
+    Mono<Boolean> existsByToken(String token);
+
+}

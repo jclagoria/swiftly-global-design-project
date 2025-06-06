@@ -21,4 +21,12 @@ public interface UserService {
      * @return a Mono emitting the UserModel of the successfully logged-in user
      */
     Mono<String> login(LoginRequest request);
+
+    /**
+     * Logs out an existing user based on the provided JWT token.
+     *
+     * @param token the JWT token to log out
+     * @return a Mono emitting a void value, indicating the logout was successful
+     */
+    Mono<Void> logout(String token);
 }

@@ -1,6 +1,8 @@
 package com.swiftly.service.user.application.service;
 
+import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
+import com.swiftly.service.user.adapter.out.persistence.repository.RevokedTokenRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
@@ -9,11 +11,15 @@ import com.swiftly.service.user.config.security.JwtTokenProvider;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
 import com.swiftly.service.user.domain.model.UserModel;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -21,9 +27,12 @@ import reactor.core.publisher.Mono;
 public class UserServiceImpl implements UserService {
 
     private final UserEntityRepository userRepository;
+    private final RevokedTokenRepository revokedTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserPersistenceMapper mapper;
     private final JwtTokenProvider jwtTokenProvider;
+
+    private final R2dbcEntityTemplate r2dbcTemplate;
 
     @Override
     public Mono<UserModel> register(RegisterUserRequest request) {
@@ -83,5 +92,25 @@ public class UserServiceImpl implements UserService {
                         log.error("Unexpected error during login for {}: {}", request.getEmail(), err.getMessage());
                     }
                 });
+    }
+
+    @Override
+    public Mono<Void> logout(String token) {
+        // Parse the JWT token to extract the expiration time
+        Claims claims = jwtTokenProvider.parseClaims(token);
+        Instant expirationAt = claims.getExpiration().toInstant();
+
+        // Create a revoked token entity with the parsed expiration time
+        RevokedTokenEntity revokedTokenEntity = new RevokedTokenEntity(token, expirationAt);
+
+        // Insert the revoked token into the database using the R2dbcTemplate
+        return r2dbcTemplate
+                .insert(RevokedTokenEntity.class)
+                .using(revokedTokenEntity)
+                // Log the result of the insertion attempt
+                .doOnSuccess(saved -> log.info("Inserted revoked token: {}", token))
+                .doOnError(err    -> log.error("Error inserting revoked token: {}", err.getMessage()))
+                // Return a Mono emitting a void value, indicating the logout was successful
+                .then(); // return Mono<Void>
     }
 }

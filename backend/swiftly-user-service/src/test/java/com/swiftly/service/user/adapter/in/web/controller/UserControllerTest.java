@@ -1,10 +1,12 @@
 package com.swiftly.service.user.adapter.in.web.controller;
 
+import com.swiftly.service.user.adapter.out.persistence.repository.RevokedTokenRepository;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.LoginResponse;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.api.dto.UserCreationResponse;
 import com.swiftly.service.user.application.port.in.UserService;
+import com.swiftly.service.user.config.security.JwtTokenProvider;
 import com.swiftly.service.user.config.security.SecurityConfig;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
@@ -31,6 +33,12 @@ class UserControllerTest {
 
     @Autowired
     private WebTestClient webClient;
+
+    @MockitoBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private RevokedTokenRepository revokedTokenRepository;
 
     @MockitoBean
     private UserService userService;
