@@ -5,6 +5,12 @@ import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.domain.model.UserModel;
 import reactor.core.publisher.Mono;
 
+/**
+ * Application service interface for user-related operations.
+ *
+ * This interface defines the contract for registering, logging in,
+ * and logging out users within the application layer.
+ */
 public interface UserService {
     /**
      * Registers a new user based on the provided registration request.

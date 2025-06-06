@@ -4,6 +4,12 @@ import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEnt
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import reactor.core.publisher.Mono;
 
+/**
+ * Repository interface for performing database operations on revoked tokens.
+ *
+ * Extends R2dbcRepository to inherit standard CRUD operations.
+ * The entity type is RevokedTokenEntity and the ID type is String.
+ */
 public interface RevokedTokenRepository extends R2dbcRepository<RevokedTokenEntity, String> {
 
     /**

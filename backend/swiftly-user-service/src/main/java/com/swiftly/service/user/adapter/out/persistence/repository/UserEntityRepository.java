@@ -6,6 +6,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+/**
+ * Repository interface for performing reactive database operations on the UserEntity.
+ *
+ * Extends R2dbcRepository to provide standard CRUD functionality.
+ * The entity type is UserEntity and the ID type is UUID.
+ */
 public interface UserEntityRepository extends R2dbcRepository<UserEntity, UUID> {
     /**
      * Check if a user exists with the given email.

@@ -14,6 +14,10 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 
+/**
+ * Reactive authentication manager that authenticates JWTs
+ * and checks if they have been revoked.
+ */
 @RequiredArgsConstructor
 public class JwtReactiveAuthenticationManager implements ReactiveAuthenticationManager {
 
