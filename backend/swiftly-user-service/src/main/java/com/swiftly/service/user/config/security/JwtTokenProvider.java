@@ -17,7 +17,7 @@ import static io.jsonwebtoken.Jwts.*;
 /**
  * Utility for creating JWT tokens.
  * We use HS256 (HMAC + SHA-256) behind the scenes.
- *
+ * <p>
  * You can inject this bean anywhere you need to issue a token
  * (e.g. after validating user credentials during login).
  */

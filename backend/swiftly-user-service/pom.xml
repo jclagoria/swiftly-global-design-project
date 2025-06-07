@@ -55,6 +55,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-resource-server</artifactId>
+			<version>6.5.0</version>
+			<!-- (no need to specify <version> if you’re relying on Spring Boot’s dependency management) -->
+		</dependency>
 
 		<!-- Reactive Data -->
 		<dependency>
@@ -125,7 +131,6 @@
 		</dependency>
 
 		<!-- Testing -->
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -139,7 +144,6 @@
 			</exclusions>
 		</dependency>
 
-
 		<!-- Reactor Test (for Flux/Mono testing) -->
 		<dependency>
 			<groupId>io.projectreactor</groupId>
@@ -150,6 +154,13 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>5.18.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -184,6 +195,18 @@
 							<version>${mapstruct.version}</version>
 						</path>
 					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M7</version>
+				<configuration>
+					<argLine>
+						-Xshare:off
+						-javaagent:"${settings.localRepository}/org/mockito/mockito-core/5.18.0/mockito-core-5.18.0.jar"
+						-XX:+EnableDynamicAgentLoading
+					</argLine>
 				</configuration>
 			</plugin>
 		</plugins>
