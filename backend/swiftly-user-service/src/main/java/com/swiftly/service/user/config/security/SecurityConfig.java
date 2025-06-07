@@ -15,15 +15,16 @@ import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
-import org.springframework.security.web.server.authentication.ServerAuthenticationEntryPointFailureHandler;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Security configuration for WebFlux applications using JWT-based authentication.
+ */
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
@@ -37,6 +38,17 @@ public class SecurityConfig {
         return new JwtReactiveAuthenticationManager(tokenProvider, revokedTokenRepository);
     }
 
+    /**
+     * Returns an {@link AuthenticationWebFilter} that extracts the JWT from the Authorization header
+     * and delegates authentication to the {@link JwtReactiveAuthenticationManager}.
+     * <p>
+     * If the JWT is invalid/expired, it returns a 401 response with a JSON body.
+     * <p>
+     * If the JWT is valid but revoked, it returns a 401 response with a JSON body.
+     *
+     * @param authManager the authentication manager to use
+     * @return an {@link AuthenticationWebFilter} that handles JWT authentication
+     */
     @Bean
     public AuthenticationWebFilter jwtAuthenticationWebFilter(ReactiveAuthenticationManager authManager) {
         JwtAuthenticationWebFilter filter =
@@ -60,6 +72,29 @@ public class SecurityConfig {
         return filter;
     }
 
+    /**
+     * This SecurityWebFilterChain is responsible for securing the endpoints of the API.
+     * <p>
+     * It does the following:
+     * <ol>
+     *     <li>Disables CSRF protection and CORS (we don't have a web UI, so we don't need these)</li>
+     *     <li>Configures an authentication entry point for when authentication fails (e.g. invalid JWT)</li>
+     *     <li>Authorizes the following endpoints to be public:
+     *         <ul>
+     *             <li>POST /register</li>
+     *             <li>POST /login</li>
+     *             <li>Swagger UI endpoints</li>
+     *         </ul>
+     *     </li>
+     *     <li>Requires all other endpoints to be authenticated</li>
+     *     <li>Inserts our JWT authentication filter at the AUTHENTICATION phase</li>
+     *     <li>Disables Spring Security's default form-login, basic authentication, and logout endpoints</li>
+     * </ol>
+     *
+     * @param http the ServerHttpSecurity to configure
+     * @param jwtFilter the JWT authentication filter to insert
+     * @return the configured SecurityWebFilterChain
+     */
     @Bean
     public SecurityWebFilterChain openEndpoints(ServerHttpSecurity http,
                                                 AuthenticationWebFilter jwtFilter) {
@@ -92,7 +127,16 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Handles authentication failures by setting the response status to 401 Unauthorized
+     * and returning a JSON error message.
+     *
+     * @param exchange the ServerWebExchange containing the request and response
+     * @param ex the exception that triggered the entry point
+     * @return a Mono that completes when the response is written
+     */
     private Mono<Void> handleAuthEntryPoint(ServerWebExchange exchange, AuthenticationException ex) {
+        // Retrieve the 'WWW-Authenticate' header from the response
         String authhander = exchange.getResponse().getHeaders().getFirst(HttpHeaders.WWW_AUTHENTICATE);
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
