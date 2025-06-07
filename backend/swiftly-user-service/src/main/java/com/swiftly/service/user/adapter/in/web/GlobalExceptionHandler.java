@@ -1,5 +1,7 @@
 package com.swiftly.service.user.adapter.in.web;
 
+import com.swiftly.service.user.api.dto.FieldErrorDto;
+import com.swiftly.service.user.api.dto.ValidationErrorResponse;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
 import lombok.AllArgsConstructor;
@@ -9,7 +11,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
+
+import java.time.Instant;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -41,6 +46,24 @@ public class GlobalExceptionHandler {
         return Mono.just(new ErrorResponse(
                 "INVALID_CREDENTIALS",
                 ex.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(WebExchangeBindException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Mono<ValidationErrorResponse> handleValidationException(WebExchangeBindException exception) {
+        var errors = exception.getFieldErrors().stream()
+                .map(fieldError -> new FieldErrorDto(
+                        fieldError.getField(),
+                        fieldError.getDefaultMessage()
+                ))
+                .toList();
+
+        return Mono.just(new ValidationErrorResponse(
+                Instant.now().toString(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                errors
         ));
     }
 
