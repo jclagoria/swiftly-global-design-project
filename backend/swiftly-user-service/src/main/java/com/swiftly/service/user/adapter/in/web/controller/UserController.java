@@ -189,9 +189,6 @@ public class UserController {
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> logout(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return Mono.error(new IllegalArgumentException("Missing or invalid Authorization header"));
-        }
         String token = authHeader.substring(7);
         return userService.logout(token);
     }
