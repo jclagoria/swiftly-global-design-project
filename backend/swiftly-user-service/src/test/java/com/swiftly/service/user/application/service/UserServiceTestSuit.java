@@ -8,7 +8,8 @@ import org.junit.platform.suite.api.Suite;
         UserServiceRegisterTest.class,
         UserServiceLogoutTest.class,
         UserServiceLoginTest.class,
-        UserServiceGetUserProfileTest.class
+        UserServiceGetUserProfileTest.class,
+        UserServiceUpdateUserProfileTest.class
 })
 public class UserServiceTestSuit {
 }

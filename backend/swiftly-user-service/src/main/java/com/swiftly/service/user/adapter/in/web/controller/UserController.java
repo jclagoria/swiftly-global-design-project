@@ -214,4 +214,43 @@ public class UserController {
                 .map(userProfileResponseMapper::toResponse);
 
     }
+
+    @Operation(
+            summary     = "Update user details",
+            description = "Updates first/last name and profile settings (phone, address, locale, timezone).",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Fields to update",
+                    required    = true,
+                    content     = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema    = @Schema(implementation = UpdateUserRequest.class)
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description  = "Updated profile returned",
+                            content      = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema    = @Schema(implementation = UserProfileResponse.class)
+                            )
+                    ),
+                    @ApiResponse(responseCode = "400", description = "Validation failed"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "User not found")
+            }
+    )
+    @PutMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<OperationResultResponse> updateUserDetails(
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdateUserRequest request
+    ) {
+        return userService.updateUserProfile(userId, request)
+                .thenReturn(OperationResultResponse
+                        .builder()
+                        .code("UPDATE_OK")
+                        .message("User updated successfully").build());
+    }
+
 }

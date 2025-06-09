@@ -3,6 +3,7 @@ package com.swiftly.service.user.adapter.in.web.controller;
 import com.swiftly.service.user.adapter.out.persistence.repository.RevokedTokenRepository;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
+import com.swiftly.service.user.api.dto.UpdateUserRequest;
 import com.swiftly.service.user.application.port.in.UserService;
 import com.swiftly.service.user.config.security.JwtTokenProvider;
 import com.swiftly.service.user.config.security.SecurityConfig;
@@ -49,6 +50,17 @@ public class AbstractUserControllerTest {
                 .password(easyRandom.nextObject(String.class))
                 .firstName(easyRandom.nextObject(String.class))
                 .lastName(easyRandom.nextObject(String.class))
+                .build();
+    }
+
+    protected UpdateUserRequest sampleUpdate() {
+        return UpdateUserRequest.builder()
+                .firstName(easyRandom.nextObject(String.class))
+                .lastName(easyRandom.nextObject(String.class))
+                .phone(easyRandom.nextObject(String.class))
+                .address(easyRandom.nextObject(String.class))
+                .locale(easyRandom.nextObject(String.class))
+                .timezone(easyRandom.nextObject(String.class))
                 .build();
     }
 
