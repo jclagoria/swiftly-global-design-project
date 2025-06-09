@@ -1,13 +1,15 @@
 package com.swiftly.service.user.application.service;
 
 import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEntity;
+import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
-import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileModelMapper;
+import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
+import com.swiftly.service.user.api.dto.UpdateUserRequest;
 import com.swiftly.service.user.application.port.in.UserService;
 import com.swiftly.service.user.config.security.JwtTokenProvider;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -34,7 +37,7 @@ public class UserServiceImpl implements UserService {
     private final UserEntityRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserPersistenceMapper userMapper;
-    private final UserProfileModelMapper profileMapper;
+    private final UserProfileMapper profileMapper;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserProfileRepository userProfileRepository;
 
@@ -67,10 +70,15 @@ public class UserServiceImpl implements UserService {
                     // Save the new user to the database
                     return userRepository
                             .save(user);
+                }).flatMap(savedUser -> {
+                   var userProfile = profileMapper
+                           .toEntity(savedUser.getId(), request);
+                   return userProfileRepository.insert(userProfile)
+                           .thenReturn(savedUser);
                 })
                 // Log the result of the registration attempt
                 .doOnSuccess(savedUser ->
-                        log.info("User registered successfully: {}", savedUser.getEmail()))
+                        log.info("User registered successfully: {}", request.getEmail()))
                 .doOnError(error ->
                         log.error("Error registering user for email {}: {}", request.getEmail(), error.getMessage()))
                 // Map the saved user to the domain model
@@ -154,4 +162,39 @@ public class UserServiceImpl implements UserService {
                                 )
                 );
     }
+
+    @Override
+    public Mono<Void> updateUserProfile(UUID userId,  UpdateUserRequest updateUserRequest) {
+
+        // Fetch the user from the database
+        Mono<UserEntity> userMono = userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new UserNotFoundException(userId)));
+
+        // Fetch the profile from the database
+        Mono<UserProfileEntity> profileMono = userProfileRepository.findById(userId);
+
+        return Mono.zip(userMono, profileMono)
+                .flatMap(tuple -> {
+                    UserEntity user = tuple.getT1();
+                    UserProfileEntity profile = tuple.getT2();
+
+                    // Patch the core user
+                    user.setFirstName(updateUserRequest.getFirstName());
+                    user.setLastName(updateUserRequest.getLastName());
+
+                    // Patch or update the profile
+                    Optional.ofNullable(updateUserRequest.getPhone()).ifPresent(profile::setPhone);
+                    Optional.ofNullable(updateUserRequest.getAddress()).ifPresent(profile::setAddress);
+                    Optional.ofNullable(updateUserRequest.getLocale()).ifPresent(profile::setLocale);
+                    Optional.ofNullable(updateUserRequest.getTimezone()).ifPresent(profile::setTimezone);
+                    profile.setUpdatedAt(Instant.now());
+
+                    // Save both at once, then complete
+                    return Mono.zip(
+                            userRepository.save(user),
+                            userProfileRepository.save(profile)
+                    ).then();
+                });
+    }
+
 }

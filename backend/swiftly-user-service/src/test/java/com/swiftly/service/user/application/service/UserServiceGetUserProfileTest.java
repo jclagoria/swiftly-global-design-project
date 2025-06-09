@@ -2,7 +2,7 @@ package com.swiftly.service.user.application.service;
 
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
-import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileModelMapper;
+import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
 import com.swiftly.service.user.data.TestFixtures;
@@ -32,7 +32,8 @@ public class UserServiceGetUserProfileTest {
     @Mock
     UserPersistenceMapper userMapper;
     @Mock
-    UserProfileModelMapper profileMapper;
+    UserProfileMapper profileMapper;
+
     @InjectMocks
     UserServiceImpl userService;
 

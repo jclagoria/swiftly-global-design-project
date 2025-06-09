@@ -1,12 +1,19 @@
 package com.swiftly.service.user.adapter.in.web.controller;
 
+import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
 import com.swiftly.service.user.api.dto.LoginResponse;
+import com.swiftly.service.user.config.security.SecurityConfig;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Mono;
 
 import java.util.stream.Stream;
@@ -14,7 +21,12 @@ import java.util.stream.Stream;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@WebFluxTest(controllers = UserController.class)
+@DisplayName("UserController - Login /login")
 public class UserLoginControllerTest extends AbstractUserControllerTest {
+
+    @MockitoBean
+    private UserProfileResponseMapper responseMapper;
 
     @Test
     void whenSuccess_shouldReturn200AndToken() {
@@ -23,6 +35,7 @@ public class UserLoginControllerTest extends AbstractUserControllerTest {
         when(userService.login(any())).thenReturn(Mono.just(token));
 
         webClient.post().uri(BASE + "/login")
+                .contentType(MediaType.APPLICATION_JSON)    // ensure JSON
                 .bodyValue(req)
                 .exchange()
                 .expectStatus().isOk()
@@ -43,6 +56,7 @@ public class UserLoginControllerTest extends AbstractUserControllerTest {
         when(userService.login(any())).thenReturn(Mono.error(exception));
 
         webClient.post().uri(BASE + "/login")
+                .contentType(MediaType.APPLICATION_JSON)    // ensure JSON
                 .bodyValue(sampleLogin())
                 .exchange()
                 .expectStatus().isEqualTo(status)
