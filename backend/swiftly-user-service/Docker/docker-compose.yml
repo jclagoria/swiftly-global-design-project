@@ -1,0 +1,18 @@
+services:
+  user-switfly-db:
+    image: postgres:15
+    container_name: user-switfly-db
+    environment:
+      POSTGRES_USER:  ${DB_USER:}
+      POSTGRES_PASSWORD: ${DB_PASSWORD_USER}
+      POSTGRES_DB: ${DB_SCHEMA_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ${DB_CONFIG_PATH}:/var/lib/postgresql/data
+    networks:
+      - switfly-network
+
+networks:
+  switfly-network:
+    driver: bridge

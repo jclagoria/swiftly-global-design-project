@@ -1,0 +1,167 @@
+package com.swiftly.service.user.application.service;
+
+import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
+import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
+import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
+import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
+import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
+import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
+import com.swiftly.service.user.api.dto.UpdateUserRequest;
+import com.swiftly.service.user.data.TestFixtures;
+import com.swiftly.service.user.domain.exception.UserNotFoundException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.util.UUID;
+
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+@DisplayName("UserService-updateUserProfile()")
+public class UserServiceUpdateUserProfileTest {
+
+    @Mock
+    UserEntityRepository userRepository;
+
+    @Mock
+    UserProfileRepository userProfileRepository;
+
+    @Mock
+    PasswordEncoder passwordEncoder;
+
+    @Mock
+    UserPersistenceMapper userMapper;
+
+    @Mock
+    UserProfileMapper profileMapper;
+
+    @InjectMocks
+    UserServiceImpl userService;
+
+    @Test
+    @DisplayName("throws when user not found")
+    void userNotFound() {
+        UUID userId = UUID.randomUUID();
+        UpdateUserRequest req = UpdateUserRequest.builder()
+                .firstName("F").lastName("L").build();
+
+        when(userRepository.findById(userId)).thenReturn(Mono.empty());
+        // even if profileRepo yields something, userRepo.empty should trigger error
+        when(userProfileRepository.findById(userId))
+                .thenReturn(Mono.just(TestFixtures.randomProfileEntity()));
+
+        StepVerifier.create(userService.updateUserProfile(userId, req))
+                .expectErrorMatches(ex ->
+                        ex instanceof UserNotFoundException
+                                && ex.getMessage().contains(userId.toString()))
+                .verify();
+
+        verify(userRepository).findById(userId);
+        verifyNoMoreInteractions(userProfileRepository);
+    }
+
+    @Test
+    @DisplayName("completes without calling save when profile not found")
+    void noOpWhenProfileMissing() {
+        UUID userId = UUID.randomUUID();
+        UserEntity user = TestFixtures.randomEntity();
+        UpdateUserRequest req = UpdateUserRequest.builder()
+                .firstName("A").lastName("B").build();
+
+        when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        when(userProfileRepository.findById(userId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(userService.updateUserProfile(userId, req))
+                .verifyComplete();
+
+        verify(userRepository).findById(userId);
+        verify(userProfileRepository).findById(userId);
+        verify(userRepository, never()).save(any());
+        verify(userProfileRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("patches user and all profile fields when present")
+    void patchesAllFields() {
+        UUID userId = UUID.randomUUID();
+        UserEntity user = TestFixtures.randomEntity();
+        UserProfileEntity profile = TestFixtures.randomProfileEntity();
+        UpdateUserRequest req = UpdateUserRequest.builder()
+                .firstName("NewFirst")
+                .lastName("NewLast")
+                .phone("12345")
+                .address("Down the street")
+                .locale("pt-BR")
+                .timezone("America/Sao_Paulo")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        when(userProfileRepository.findById(userId)).thenReturn(Mono.just(profile));
+        when(userRepository.save(any(UserEntity.class)))
+                .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+        when(userProfileRepository.save(any(UserProfileEntity.class)))
+                .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+
+        StepVerifier.create(userService.updateUserProfile(userId, req))
+                .verifyComplete();
+
+        // verify first/last name updated
+        verify(userRepository).save(argThat(u ->
+                "NewFirst".equals(u.getFirstName()) &&
+                        "NewLast".equals(u.getLastName())
+        ));
+        // verify all profile fields updated
+        verify(userProfileRepository).save(argThat(p ->
+                "12345".equals(p.getPhone()) &&
+                        "Down the street".equals(p.getAddress()) &&
+                        "pt-BR".equals(p.getLocale()) &&
+                        "America/Sao_Paulo".equals(p.getTimezone()) &&
+                        p.getUpdatedAt() != null
+        ));
+    }
+
+    @Test
+    @DisplayName("only patches provided profile fields, leaves others untouched")
+    void patchesSelectiveFields() {
+        UUID userId = UUID.randomUUID();
+        UserEntity user = TestFixtures.randomEntity();
+        UserProfileEntity profile = TestFixtures.randomProfileEntity();
+
+        // capture original values
+        String originalPhone  = profile.getPhone();
+        String originalLocale = profile.getLocale();
+
+        // only address & timezone provided
+        UpdateUserRequest req = UpdateUserRequest.builder()
+                .firstName("F")
+                .lastName("L")
+                .address("NewAddr")
+                .timezone("Europe/London")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        when(userProfileRepository.findById(userId)).thenReturn(Mono.just(profile));
+        when(userRepository.save(any(UserEntity.class)))
+                .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+        when(userProfileRepository.save(any(UserProfileEntity.class)))
+                .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+
+        StepVerifier.create(userService.updateUserProfile(userId, req))
+                .verifyComplete();
+
+        // only address & timezone changed, phone/locale unchanged
+        verify(userProfileRepository).save(argThat(p ->
+                "NewAddr".equals(p.getAddress()) &&
+                        "Europe/London".equals(p.getTimezone()) &&
+                        originalPhone.equals(p.getPhone()) &&
+                        originalLocale.equals(p.getLocale())
+        ));
+    }
+}
