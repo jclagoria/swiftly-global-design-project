@@ -1,5 +1,6 @@
 package com.swiftly.service.user.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,6 +23,7 @@ public class UserModel {
     @Schema(description = "User email address", example = "user@example.com")
     private String email;
 
+    @JsonIgnore
     private String passwordHash;
 
     @Schema(description = "User's first name", example = "John")

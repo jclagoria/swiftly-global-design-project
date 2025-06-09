@@ -3,7 +3,10 @@ package com.swiftly.service.user.application.port.in;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.domain.model.UserModel;
+import com.swiftly.service.user.domain.model.UserProfileModel;
 import reactor.core.publisher.Mono;
+
+import java.util.UUID;
 
 /**
  * Application service interface for user-related operations.
@@ -35,4 +38,12 @@ public interface UserService {
      * @return a Mono emitting a void value, indicating the logout was successful
      */
     Mono<Void> logout(String token);
+
+    /**
+     * Retrieves a user profile based on the provided user ID.
+     *
+     * @param userId the UUID of the user whose profile is to be retrieved
+     * @return a Mono emitting the UserProfileModel associated with the given user ID
+     */
+    Mono<UserProfileModel> getUserProfile(UUID userId);
 }
