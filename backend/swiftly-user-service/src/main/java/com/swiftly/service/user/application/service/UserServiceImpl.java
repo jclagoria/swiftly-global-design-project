@@ -3,7 +3,7 @@ package com.swiftly.service.user.application.service;
 import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
-import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileModelMapper;
+import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
 import com.swiftly.service.user.api.dto.LoginRequest;
@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
     private final UserEntityRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserPersistenceMapper userMapper;
-    private final UserProfileModelMapper profileMapper;
+    private final UserProfileMapper profileMapper;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserProfileRepository userProfileRepository;
 
@@ -67,10 +67,15 @@ public class UserServiceImpl implements UserService {
                     // Save the new user to the database
                     return userRepository
                             .save(user);
+                }).flatMap(savedUser -> {
+                   var userProfile = profileMapper
+                           .toEntity(savedUser.getId(), request);
+                   return userProfileRepository.insert(userProfile)
+                           .thenReturn(savedUser);
                 })
                 // Log the result of the registration attempt
                 .doOnSuccess(savedUser ->
-                        log.info("User registered successfully: {}", savedUser.getEmail()))
+                        log.info("User registered successfully: {}", request.getEmail()))
                 .doOnError(error ->
                         log.error("Error registering user for email {}: {}", request.getEmail(), error.getMessage()))
                 // Map the saved user to the domain model

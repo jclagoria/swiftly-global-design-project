@@ -17,7 +17,7 @@ public interface UserProfileRepository extends R2dbcRepository<UserProfileEntity
      * @return a Mono emitting a void value, indicating the insertion was successful
      */
     @Query("""
-        INSERT INTO user_profiles(user_id, phone, address, locale, timezone, updated_at)
+        INSERT INTO user_profiles(user_id, phone, address, locale, timezone)
           VALUES (:#{#p.userId},
                   :#{#p.phone},
                   :#{#p.address},
