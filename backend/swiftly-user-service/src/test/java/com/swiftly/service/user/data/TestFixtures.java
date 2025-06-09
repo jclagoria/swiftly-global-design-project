@@ -1,9 +1,11 @@
 package com.swiftly.service.user.data;
 
 import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
+import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.domain.model.UserModel;
+import com.swiftly.service.user.domain.model.UserProfileModel;
 import org.jeasy.random.EasyRandom;
 
 public class TestFixtures {
@@ -39,5 +41,21 @@ public class TestFixtures {
                 .email(email)
                 .password(pwd)
                 .build();
+    }
+
+    public static UserProfileEntityBuilder aProfileEntity() {
+        return UserProfileEntityBuilder.builder().build();
+    }
+
+    public static UserProfileEntity randomProfileEntity() {
+        return UserProfileEntityBuilder.random().build();
+    }
+
+    public static UserProfileModelBuilder aProfileModel() {
+        return UserProfileModelBuilder.builder().build();
+    }
+
+    public static UserProfileModel randomProfileModel() {
+        return UserProfileModelBuilder.random().build();
     }
 }

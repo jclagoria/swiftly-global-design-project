@@ -7,7 +7,8 @@ import org.junit.platform.suite.api.Suite;
 @SelectClasses({
         UserServiceRegisterTest.class,
         UserServiceLogoutTest.class,
-        UserServiceLoginTest.class
+        UserServiceLoginTest.class,
+        UserServiceGetUserProfileTest.class
 })
 public class UserServiceTestSuit {
 }

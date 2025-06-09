@@ -4,14 +4,17 @@ import com.swiftly.service.user.api.dto.FieldErrorDto;
 import com.swiftly.service.user.api.dto.ValidationErrorResponse;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
+import com.swiftly.service.user.domain.exception.UserNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -65,6 +68,33 @@ public class GlobalExceptionHandler {
                 "Bad Request",
                 errors
         ));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Mono<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
+        return Mono.just(new ErrorResponse("USER_NOT_FOUND", ex.getMessage()));
+    }
+
+    /**
+     * Catch Spring’s own 400 Type‐mismatch exception (thrown when a PathVariable cannot
+     * be converted to the target type, e.g. UUID.fromString fails) and return a clean,
+     * 400 BAD_REQUEST with our ErrorResponse shape.
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleBadRequest(ResponseStatusException ex) {
+        // only intercept BAD_REQUEST type‐mismatch errors
+        if (ex.getStatusCode() == HttpStatus.BAD_REQUEST && "Type mismatch.".equals(ex.getReason())) {
+            ErrorResponse err = new ErrorResponse(
+                    ex.getMostSpecificCause().getMessage(),
+                    ex.getReason()
+            );
+            return Mono.just(ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(err));
+        }
+        // for other ResponseStatusExceptions, re‐throw so Spring handles it
+        return Mono.error(ex);
     }
 
     /**

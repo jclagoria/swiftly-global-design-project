@@ -1,9 +1,7 @@
 package com.swiftly.service.user.adapter.in.web.controller;
 
-import com.swiftly.service.user.api.dto.LoginRequest;
-import com.swiftly.service.user.api.dto.LoginResponse;
-import com.swiftly.service.user.api.dto.RegisterUserRequest;
-import com.swiftly.service.user.api.dto.UserCreationResponse;
+import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
+import com.swiftly.service.user.api.dto.*;
 import com.swiftly.service.user.application.port.in.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Tag(
         name = "User Service",
         description = "Operations related to user registration, authentication, and profile management"
@@ -27,6 +27,8 @@ import reactor.core.publisher.Mono;
 public class UserController {
 
     private final UserService userService;
+    private final UserProfileResponseMapper userProfileResponseMapper;
+
 
     /**
      * Register a new user in the system.
@@ -191,5 +193,25 @@ public class UserController {
     public Mono<Void> logout(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
         return userService.logout(token);
+    }
+
+    @Operation(
+            summary     = "Retrieve a user’s profile by ID",
+            description = "Returns user basic info + profile settings. Requires a valid JWT.",
+            responses   = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description  = "User profile found",
+                            content      = @Content(schema = @Schema(implementation = UserProfileResponse.class))
+                    ),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "User not found")
+            }
+    )
+    @GetMapping("/{userId}")
+    public Mono<UserProfileResponse> getProfile(@PathVariable UUID userId) {
+        return userService.getUserProfile(userId)
+                .map(userProfileResponseMapper::toResponse);
+
     }
 }

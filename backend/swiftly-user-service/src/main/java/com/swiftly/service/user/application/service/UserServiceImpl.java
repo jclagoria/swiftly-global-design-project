@@ -1,16 +1,20 @@
 package com.swiftly.service.user.application.service;
 
 import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEntity;
+import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
-import com.swiftly.service.user.adapter.out.persistence.repository.RevokedTokenRepository;
+import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileModelMapper;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
+import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.application.port.in.UserService;
 import com.swiftly.service.user.config.security.JwtTokenProvider;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
+import com.swiftly.service.user.domain.exception.UserNotFoundException;
 import com.swiftly.service.user.domain.model.UserModel;
+import com.swiftly.service.user.domain.model.UserProfileModel;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,8 +33,10 @@ public class UserServiceImpl implements UserService {
 
     private final UserEntityRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserPersistenceMapper mapper;
+    private final UserPersistenceMapper userMapper;
+    private final UserProfileModelMapper profileMapper;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserProfileRepository userProfileRepository;
 
     private final R2dbcEntityTemplate r2dbcTemplate;
 
@@ -50,7 +57,7 @@ public class UserServiceImpl implements UserService {
                         return Mono.error(new EmailAlreadyInUseException(request.getEmail()));
                     }
                     // Otherwise, create a new user with the provided details
-                    var user = mapper.toEntity(UserModel.builder()
+                    var user = userMapper.toEntity(UserModel.builder()
                             .email(request.getEmail())
                             .passwordHash(passwordEncoder.encode(request.getPassword()))
                             .firstName(request.getFirstName())
@@ -67,7 +74,7 @@ public class UserServiceImpl implements UserService {
                 .doOnError(error ->
                         log.error("Error registering user for email {}: {}", request.getEmail(), error.getMessage()))
                 // Map the saved user to the domain model
-                .map(mapper::toDomain);
+                .map(userMapper::toDomain);
     }
 
     /**
@@ -131,5 +138,20 @@ public class UserServiceImpl implements UserService {
                 .doOnError(err -> log.error("Error inserting revoked token: {}", err.getMessage()))
                 // Return a Mono emitting a void value, indicating the logout was successful
                 .then(); // return Mono<Void>
+    }
+
+    @Override
+    public Mono<UserProfileModel> getUserProfile(UUID userId) {
+        return userRepository.findById(userId)                                    // 1️⃣ fetch user
+                .switchIfEmpty(Mono.error(new UserNotFoundException(userId)))
+                .map(userMapper::toDomain)                                             // 2️⃣ map to UserModel
+                .flatMap(userModel ->
+                        userProfileRepository.findById(userId)                             // 3️⃣ fetch profile
+                                .defaultIfEmpty(new UserProfileEntity(
+                                        userId, null, null, "en-US", "UTC", null, null))
+                                .map(profileEntity ->
+                                        profileMapper.toModel(userModel, profileEntity)            // 4️⃣ combine them
+                                )
+                );
     }
 }
