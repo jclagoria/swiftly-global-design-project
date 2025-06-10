@@ -2,8 +2,6 @@ package com.swiftly.service.user.application.service;
 
 import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
-import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
-import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
@@ -15,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -33,15 +30,6 @@ public class UserServiceUpdateUserProfileTest {
     @Mock
     UserProfileRepository userProfileRepository;
 
-    @Mock
-    PasswordEncoder passwordEncoder;
-
-    @Mock
-    UserPersistenceMapper userMapper;
-
-    @Mock
-    UserProfileMapper profileMapper;
-
     @InjectMocks
     UserServiceImpl userService;
 
@@ -49,11 +37,10 @@ public class UserServiceUpdateUserProfileTest {
     @DisplayName("throws when user not found")
     void userNotFound() {
         UUID userId = UUID.randomUUID();
-        UpdateUserRequest req = UpdateUserRequest.builder()
-                .firstName("F").lastName("L").build();
+        // request content does not matter here, use random data
+        UpdateUserRequest req = TestFixtures.randomUpdateRequest().build();
 
-        when(userRepository.findById(userId)).thenReturn(Mono.empty());
-        // even if profileRepo yields something, userRepo.empty should trigger error
+        when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.empty());
         when(userProfileRepository.findById(userId))
                 .thenReturn(Mono.just(TestFixtures.randomProfileEntity()));
 
@@ -63,7 +50,7 @@ public class UserServiceUpdateUserProfileTest {
                                 && ex.getMessage().contains(userId.toString()))
                 .verify();
 
-        verify(userRepository).findById(userId);
+        verify(userRepository).findByIdAndDeletedIsFalse(userId);
         verifyNoMoreInteractions(userProfileRepository);
     }
 
@@ -72,16 +59,16 @@ public class UserServiceUpdateUserProfileTest {
     void noOpWhenProfileMissing() {
         UUID userId = UUID.randomUUID();
         UserEntity user = TestFixtures.randomEntity();
-        UpdateUserRequest req = UpdateUserRequest.builder()
-                .firstName("A").lastName("B").build();
+        // only identity matters, random data is fine
+        UpdateUserRequest req = TestFixtures.randomUpdateRequest().build();
 
-        when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.just(user));
         when(userProfileRepository.findById(userId)).thenReturn(Mono.empty());
 
         StepVerifier.create(userService.updateUserProfile(userId, req))
                 .verifyComplete();
 
-        verify(userRepository).findById(userId);
+        verify(userRepository).findByIdAndDeletedIsFalse(userId);
         verify(userProfileRepository).findById(userId);
         verify(userRepository, never()).save(any());
         verify(userProfileRepository, never()).save(any());
@@ -93,16 +80,10 @@ public class UserServiceUpdateUserProfileTest {
         UUID userId = UUID.randomUUID();
         UserEntity user = TestFixtures.randomEntity();
         UserProfileEntity profile = TestFixtures.randomProfileEntity();
-        UpdateUserRequest req = UpdateUserRequest.builder()
-                .firstName("NewFirst")
-                .lastName("NewLast")
-                .phone("12345")
-                .address("Down the street")
-                .locale("pt-BR")
-                .timezone("America/Sao_Paulo")
+        UpdateUserRequest req = TestFixtures.aUpdateRequest()
                 .build();
 
-        when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.just(user));
         when(userProfileRepository.findById(userId)).thenReturn(Mono.just(profile));
         when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
@@ -112,17 +93,15 @@ public class UserServiceUpdateUserProfileTest {
         StepVerifier.create(userService.updateUserProfile(userId, req))
                 .verifyComplete();
 
-        // verify first/last name updated
         verify(userRepository).save(argThat(u ->
-                "NewFirst".equals(u.getFirstName()) &&
-                        "NewLast".equals(u.getLastName())
+                req.getFirstName().equals(u.getFirstName()) &&
+                        req.getLastName().equals(u.getLastName())
         ));
-        // verify all profile fields updated
         verify(userProfileRepository).save(argThat(p ->
-                "12345".equals(p.getPhone()) &&
-                        "Down the street".equals(p.getAddress()) &&
-                        "pt-BR".equals(p.getLocale()) &&
-                        "America/Sao_Paulo".equals(p.getTimezone()) &&
+                req.getPhone().equals(p.getPhone()) &&
+                        req.getAddress().equals(p.getAddress()) &&
+                        req.getLocale().equals(p.getLocale()) &&
+                        req.getTimezone().equals(p.getTimezone()) &&
                         p.getUpdatedAt() != null
         ));
     }
@@ -140,13 +119,11 @@ public class UserServiceUpdateUserProfileTest {
 
         // only address & timezone provided
         UpdateUserRequest req = UpdateUserRequest.builder()
-                .firstName("F")
-                .lastName("L")
                 .address("NewAddr")
                 .timezone("Europe/London")
                 .build();
 
-        when(userRepository.findById(userId)).thenReturn(Mono.just(user));
+        when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.just(user));
         when(userProfileRepository.findById(userId)).thenReturn(Mono.just(profile));
         when(userRepository.save(any(UserEntity.class)))
                 .thenAnswer(inv -> Mono.just(inv.getArgument(0)));

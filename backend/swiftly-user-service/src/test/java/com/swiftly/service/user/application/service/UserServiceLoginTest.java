@@ -43,7 +43,7 @@ public class UserServiceLoginTest {
                 .withPasswordHash("HASHED")
                 .build();
 
-        when(userRepository.findByEmail(email)).thenReturn(Mono.just(userEnt));
+        when(userRepository.findByEmailAndDeletedIsFalse(email)).thenReturn(Mono.just(userEnt));
         when(passwordEncoder.matches(pwd, "HASHED")).thenReturn(true);
         when(jwtTokenProvider.createToken(email)).thenReturn("TOK");
 
@@ -58,7 +58,7 @@ public class UserServiceLoginTest {
         var email = TestFixtures.rnd.nextObject(String.class) + "@x.com";
         var pwd   = TestFixtures.rnd.nextObject(String.class);
 
-        when(userRepository.findByEmail(email)).thenReturn(Mono.empty());
+        when(userRepository.findByEmailAndDeletedIsFalse(email)).thenReturn(Mono.empty());
 
         StepVerifier.create(userService.login(TestFixtures.aLoginRequest(email, pwd)))
                 .expectError(InvalidCredentialsException.class)

@@ -166,7 +166,7 @@ public class UserServiceRegisterTest {
                 .build();
 
         // stub finding the user successfully
-        when(userRepository.findByEmail(email))
+        when(userRepository.findByEmailAndDeletedIsFalse(email))
                 .thenReturn(Mono.just(storedUser));
 
         // stub password check to fail

@@ -27,6 +27,19 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 ALTER TABLE users
     ALTER COLUMN id
         SET DEFAULT gen_random_uuid();
+```
+
+### Add soft-delete columns to users:
+```sql
+ALTER TABLE users
+  ADD COLUMN deleted        BOOLEAN        NOT NULL DEFAULT FALSE,
+  ADD COLUMN deleted_at     TIMESTAMPTZ    NULL;
+```
+
+### (Optional) add an index on deleted for faster lookups:
+```sql
+CREATE INDEX idx_users_deleted ON users(deleted);
+```
 
 ## 2. user_profiles
 
@@ -39,6 +52,7 @@ CREATE TABLE user_profiles (
     address TEXT,
     locale VARCHAR(10) NOT NULL DEFAULT 'en-US',
     timezone VARCHAR(50) NOT NULL DEFAULT 'UTC',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ```
@@ -47,7 +61,7 @@ CREATE TABLE user_profiles (
 
 ```sql
 CREATE TABLE transactions (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY gen_random_uuid(),
     user_id UUID NOT NULL
         REFERENCES users(id)
         ON DELETE CASCADE,
@@ -63,7 +77,7 @@ CREATE TABLE transactions (
 
 ```sql
 CREATE TABLE payment_providers (
-    id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     config JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -89,9 +103,22 @@ CREATE TABLE transaction_providers (
 ```sql
 CREATE TABLE exchange_rates (
     currency_pair CHAR(7) PRIMARY KEY,  -- e.g. 'USD:EUR'
-    rate NUMERIC(18,8) NOT NULL,
+    rate NUMERIC(18,8) NOT NULL,create a
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+```
+
+## 7. Create a table to hold revoked JWTs
+```sql
+CREATE TABLE revoked_tokens (
+    token TEXT PRIMARY KEY,
+    expires_at TIMESTAMPTZ NOT NULL
+);
+```
+
+## 8. (Optional) Index on expires_at so you can purge old entries via a background job
+```sql
+CREATE INDEX idx_revoked_tokens_expires_at ON revoked_tokens(expires_at);
 ```
 
 ## Indexes & Constraints

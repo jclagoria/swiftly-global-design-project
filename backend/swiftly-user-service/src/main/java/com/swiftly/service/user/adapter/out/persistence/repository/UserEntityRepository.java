@@ -21,11 +21,21 @@ public interface UserEntityRepository extends R2dbcRepository<UserEntity, UUID> 
      */
     Mono<Boolean> existsByEmail(String email);
 
+
+    /**
+     * Retrieve a user by their ID.
+     *
+     * @param id the ID of the user to retrieve
+     * @return a Mono that emits the matching UserEntity
+     */
+    Mono<UserEntity> findByIdAndDeletedIsFalse(UUID id);
+
     /**
      * Retrieve a user by their email.
      *
      * @param email the email to query by
      * @return a Mono that emits the matching UserEntity
      */
-    Mono<UserEntity> findByEmail(String email);
+    Mono<UserEntity> findByEmailAndDeletedIsFalse(String email);
 }
+

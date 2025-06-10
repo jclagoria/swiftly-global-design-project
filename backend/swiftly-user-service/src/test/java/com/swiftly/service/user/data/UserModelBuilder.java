@@ -33,8 +33,15 @@ public class UserModelBuilder {
     @Builder.Default
     private Instant createdAt = easyRandom.nextObject(Instant.class);
 
+    @Builder.Default
+    private Boolean deleted = easyRandom.nextObject(Boolean.class);
+
+    @Builder.Default
+    private Instant deletedAt = easyRandom.nextObject(Instant.class);
+
     public UserModel build() {
-        return new UserModel(id, email, passwordHash, firstName, lastName, createdAt);
+        return new UserModel(id, email, passwordHash, firstName,
+                lastName, createdAt, deleted, deletedAt);
     }
 
     /**

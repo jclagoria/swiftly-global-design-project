@@ -34,4 +34,10 @@ public class UserModel {
 
     @Schema(description = "Timestamp when the user was created (ISO 8601)", example = "2025-06-02T15:23:01.123Z")
     private Instant createdAt;
+
+    @JsonIgnore
+    private Boolean deleted;
+
+    @JsonIgnore
+    private Instant deletedAt;
 }

@@ -32,4 +32,9 @@ public class UserEntity {
     @Column("created_at")
     private Instant createdAt;
 
+    private Boolean deleted;
+
+    @Column("deleted_at")
+    private Instant deletedAt;
+
 }
