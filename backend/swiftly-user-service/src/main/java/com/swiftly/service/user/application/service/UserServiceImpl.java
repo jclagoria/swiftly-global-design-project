@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<String> login(LoginRequest request) {
         // Attempt to find the user by email
-        return userRepository.findByEmail(request.getEmail())
+        return userRepository.findByEmailAndDeletedIsFalse(request.getEmail())
                 // If no user is found, return an InvalidCredentialsException
                 .switchIfEmpty(Mono.error(new InvalidCredentialsException()))
                 .flatMap(user -> {
@@ -150,7 +150,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<UserProfileModel> getUserProfile(UUID userId) {
-        return userRepository.findById(userId)                                    // 1️⃣ fetch user
+        return userRepository.findByIdAndDeletedIsFalse(userId)                                    // 1️⃣ fetch user
                 .switchIfEmpty(Mono.error(new UserNotFoundException(userId)))
                 .map(userMapper::toDomain)                                             // 2️⃣ map to UserModel
                 .flatMap(userModel ->
@@ -167,7 +167,7 @@ public class UserServiceImpl implements UserService {
     public Mono<Void> updateUserProfile(UUID userId,  UpdateUserRequest updateUserRequest) {
 
         // Fetch the user from the database
-        Mono<UserEntity> userMono = userRepository.findById(userId)
+        Mono<UserEntity> userMono = userRepository.findByIdAndDeletedIsFalse(userId)
                 .switchIfEmpty(Mono.error(new UserNotFoundException(userId)));
 
         // Fetch the profile from the database
@@ -194,6 +194,17 @@ public class UserServiceImpl implements UserService {
                             userRepository.save(user),
                             userProfileRepository.save(profile)
                     ).then();
+                });
+    }
+
+    @Override
+    public Mono<Void> deleteUser(UUID userId) {
+        return userRepository.findByIdAndDeletedIsFalse(userId)
+                .switchIfEmpty(Mono.error(new UserNotFoundException(userId)))
+                .flatMap(user -> {
+                    user.setDeleted(true);
+                    user.setDeletedAt(Instant.now());
+                    return userRepository.save(user).then();
                 });
     }
 

@@ -56,4 +56,6 @@ public interface UserService {
      * @return a Mono emitting a void value, indicating the update was successful
      */
     Mono<Void> updateUserProfile(UUID userId, UpdateUserRequest updateUserRequest);
+
+    Mono<Void> deleteUser(UUID userId);
 }

@@ -41,7 +41,7 @@ public class UserServiceGetUserProfileTest {
     @DisplayName("throws when user not found")
     void userNotFound() {
         UUID userId = UUID.randomUUID();
-        when(userRepository.findById(userId)).thenReturn(Mono.empty());
+        when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.empty());
 
         StepVerifier.create(userService.getUserProfile(userId))
                 .expectErrorMatches(throwable -> throwable instanceof UserNotFoundException
@@ -58,7 +58,7 @@ public class UserServiceGetUserProfileTest {
         var profileEntity = TestFixtures.randomProfileEntity();
         var expectedModel = TestFixtures.randomProfileModel();
 
-        when(userRepository.findById(userId)).thenReturn(Mono.just(userEntity));
+        when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.just(userEntity));
         when(userMapper.toDomain(userEntity)).thenReturn(userModel);
         when(userProfileRepository.findById(userId)).thenReturn(Mono.just(profileEntity));
         when(profileMapper.toModel(userModel, profileEntity)).thenReturn(expectedModel);
@@ -80,7 +80,7 @@ public class UserServiceGetUserProfileTest {
                 userId, null, null, "en-US", "UTC", null, null);
         var expectedModel = TestFixtures.randomProfileModel();
 
-        when(userRepository.findById(userId)).thenReturn(Mono.just(userEntity));
+        when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.just(userEntity));
         when(userMapper.toDomain(userEntity)).thenReturn(userModel);
         when(userProfileRepository.findById(userId)).thenReturn(Mono.empty());
         when(profileMapper.toModel(userModel, defaultEntity)).thenReturn(expectedModel);

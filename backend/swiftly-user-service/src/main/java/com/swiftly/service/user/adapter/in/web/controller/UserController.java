@@ -253,4 +253,14 @@ public class UserController {
                         .message("User updated successfully").build());
     }
 
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<OperationResultResponse> deleteUser(@PathVariable UUID userId) {
+        return userService.deleteUser(userId)
+                .thenReturn(
+                        new OperationResultResponse("DELETE_OK",
+                                "User deleted successfully")
+                );
+    }
+
 }

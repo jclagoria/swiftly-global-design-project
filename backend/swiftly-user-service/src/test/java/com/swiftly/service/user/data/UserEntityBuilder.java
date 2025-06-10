@@ -34,9 +34,15 @@ public class UserEntityBuilder {
     @Builder.Default
     private Instant createdAt = easyRandom.nextObject(Instant.class);
 
+    @Builder.Default
+    private Boolean deleted = easyRandom.nextObject(Boolean.class);
+
+    @Builder.Default
+    private Instant deletedAt = easyRandom.nextObject(Instant.class);
+
     public UserEntity build() {
         return new UserEntity(id, email, passwordHash,
-                firstName, lastName, createdAt);
+                firstName, lastName, createdAt, deleted, deletedAt);
     }
 
     /**

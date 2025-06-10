@@ -58,4 +58,12 @@ public class TestFixtures {
     public static UserProfileModel randomProfileModel() {
         return UserProfileModelBuilder.random().build();
     }
+
+    public static UpdateUserRequestBuilder aUpdateRequest() {
+        return UpdateUserRequestBuilder.builder().build();
+    }
+
+    public static UpdateUserRequestBuilder randomUpdateRequest() {
+        return UpdateUserRequestBuilder.random();
+    }
 }
