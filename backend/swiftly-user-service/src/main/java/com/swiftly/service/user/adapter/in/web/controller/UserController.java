@@ -12,7 +12,10 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -261,6 +264,17 @@ public class UserController {
                         new OperationResultResponse("DELETE_OK",
                                 "User deleted successfully")
                 );
+    }
+
+    @PutMapping("/change-password")
+    public Mono<OperationResultResponse> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        return Mono.error(new ResponseStatusException(
+                HttpStatus.NOT_IMPLEMENTED,
+                "Change-password functionality is not available yet"
+        ));
     }
 
 }

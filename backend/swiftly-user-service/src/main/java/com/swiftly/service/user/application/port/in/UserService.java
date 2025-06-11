@@ -1,5 +1,6 @@
 package com.swiftly.service.user.application.port.in;
 
+import com.swiftly.service.user.api.dto.ChangePasswordRequest;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
@@ -57,5 +58,23 @@ public interface UserService {
      */
     Mono<Void> updateUserProfile(UUID userId, UpdateUserRequest updateUserRequest);
 
+    /**
+     * Deletes an existing user from the system.
+     *
+     * @param userId the UUID of the user to be deleted
+     * @return a Mono emitting a void value, indicating the deletion was successful
+     */
     Mono<Void> deleteUser(UUID userId);
+
+    /**
+     * Changes the password of an existing user.
+     *
+     * Validates the old password, and updates it with the new password if valid.
+     * Logs the result of the operation.
+     *
+     * @param userId the UUID of the user whose password is to be changed
+     * @param req the request containing the old and new passwords
+     * @return a Mono emitting a void value, indicating the password change was successful
+     */
+    Mono<Void> changePassword(UUID userId, ChangePasswordRequest req);
 }

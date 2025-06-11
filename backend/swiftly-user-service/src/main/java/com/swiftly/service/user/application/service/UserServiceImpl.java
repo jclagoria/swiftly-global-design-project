@@ -7,6 +7,7 @@ import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMa
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
+import com.swiftly.service.user.api.dto.ChangePasswordRequest;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
@@ -205,6 +206,29 @@ public class UserServiceImpl implements UserService {
                     user.setDeleted(true);
                     user.setDeletedAt(Instant.now());
                     return userRepository.save(user).then();
+                });
+    }
+
+    @Override
+    public Mono<Void> changePassword(UUID userId, ChangePasswordRequest req) {
+        return userRepository.findByIdAndDeletedIsFalse(userId)
+                .switchIfEmpty(Mono.error(new UserNotFoundException(userId)))
+                .flatMap(entity -> {
+                    if (!passwordEncoder
+                            .matches(req.getOldPassword(), entity.getPasswordHash()))
+                        {
+                            return Mono.error(new InvalidCredentialsException());
+                        }
+                    entity.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
+                    return userRepository.save(entity).then();
+                }).doOnSuccess(savedUser -> {
+                    log.info("Password changed successfully for user: {}", userId);
+                }).doOnError(err -> {
+                    if (err instanceof InvalidCredentialsException) {
+                        log.warn("Invalid credentials provided for user: {}", userId);
+                    } else {
+                        log.error("Error changing password for user {}: {}", userId, err.getMessage());
+                    }
                 });
     }
 

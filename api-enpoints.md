@@ -12,12 +12,13 @@ POST	   /users/logout	             Invalidate user session/token
 GET	       /users/{userId}	             Retrieve user profile
 PUT	       /users/{userId}	             Update user details
 DELETE	   /users/{userId}	             Delete user account
-POST	   /users/reset-password	     Send reset password link
 PUT	       /users/change-password	     Update user password
-POST	   /users/verify-email	         Verify user email for account activation
 GET	       /users/preferences/{userId}	 Retrieve user preferences from MongoDB
 PUT	       /users/preferences/{userId}	 Update user preferences
 POST       /users/refresh-token          For secure JWT token renewal, reduce login friction. 
+
+Not Implemented --POST	   /users/reset-password	     Send reset password link
+Not Implemented --POST	   /users/verify-email	         Verify user email for account activation
 
 2. Transaction Service
 Handles money transfers, transaction processing, and compliance.
