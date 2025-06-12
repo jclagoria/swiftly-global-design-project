@@ -1,4 +1,4 @@
-	### **Project Definition: Swiftly Global**
+### **Project Definition: Swiftly Global**
 
 The project "Swiftly Global" aims to facilitate fast and secure cross-border transactions, adhering to security standards, scalability, and usability. Below is a detailed definition of the technology stack and architectural considerations necessary to meet the project requirements, incorporating the requested modifications.
 
