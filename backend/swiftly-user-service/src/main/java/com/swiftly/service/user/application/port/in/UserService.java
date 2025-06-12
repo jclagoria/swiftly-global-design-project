@@ -4,6 +4,7 @@ import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
 import com.swiftly.service.user.domain.model.UserModel;
+import com.swiftly.service.user.domain.model.UserPreferencesModel;
 import com.swiftly.service.user.domain.model.UserProfileModel;
 import reactor.core.publisher.Mono;
 
@@ -57,5 +58,13 @@ public interface UserService {
      */
     Mono<Void> updateUserProfile(UUID userId, UpdateUserRequest updateUserRequest);
 
+    /**
+     * Deletes an existing user from the system.
+     *
+     * @param userId the UUID of the user to be deleted
+     * @return a Mono emitting a void value, indicating the deletion was successful
+     */
     Mono<Void> deleteUser(UUID userId);
+
+    Mono<UserPreferencesModel> getUserPreferences(UUID userId);
 }

@@ -4,7 +4,9 @@ import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
+import com.swiftly.service.user.api.dto.UserPreferenceResponse;
 import com.swiftly.service.user.domain.model.UserModel;
+import com.swiftly.service.user.domain.model.UserPreferencesModel;
 import com.swiftly.service.user.domain.model.UserProfileModel;
 import org.jeasy.random.EasyRandom;
 
@@ -65,5 +67,17 @@ public class TestFixtures {
 
     public static UpdateUserRequestBuilder randomUpdateRequest() {
         return UpdateUserRequestBuilder.random();
+    }
+
+    public static UserPreferencesBuilder aUserPreferencesBuilder() {
+        return UserPreferencesBuilder.builder().build();
+    }
+
+    public static UserPreferencesBuilder randomUserPreferencesBuilder() {
+        return UserPreferencesBuilder.random();
+    }
+
+    public static UserPreferencesModel randomPreferencesModel() {
+        return UserPreferencesModelBuilder.random();
     }
 }
