@@ -4,9 +4,11 @@ import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEnt
 import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
+import com.swiftly.service.user.adapter.out.persistence.mapper.UserPreferencesMapper;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
+import com.swiftly.service.user.adapter.out.persistence.repository.mongo.UserPreferencesRepository;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
@@ -15,7 +17,9 @@ import com.swiftly.service.user.config.security.JwtTokenProvider;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
 import com.swiftly.service.user.domain.exception.UserNotFoundException;
+import com.swiftly.service.user.domain.exception.UserPreferencesNotFoundException;
 import com.swiftly.service.user.domain.model.UserModel;
+import com.swiftly.service.user.domain.model.UserPreferencesModel;
 import com.swiftly.service.user.domain.model.UserProfileModel;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -35,11 +39,13 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserEntityRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final UserPreferencesRepository userPreferencesRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserPersistenceMapper userMapper;
     private final UserProfileMapper profileMapper;
+    private final UserPreferencesMapper preferencesMapper;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserProfileRepository userProfileRepository;
 
     private final R2dbcEntityTemplate r2dbcTemplate;
 
@@ -206,6 +212,13 @@ public class UserServiceImpl implements UserService {
                     user.setDeletedAt(Instant.now());
                     return userRepository.save(user).then();
                 });
+    }
+
+    @Override
+    public Mono<UserPreferencesModel> getUserPreferences(UUID userId) {
+        return userPreferencesRepository.findByUserId(userId)
+                .switchIfEmpty(Mono.error(new UserPreferencesNotFoundException(userId)))
+                .map(preferencesMapper::toDomain);
     }
 
 }

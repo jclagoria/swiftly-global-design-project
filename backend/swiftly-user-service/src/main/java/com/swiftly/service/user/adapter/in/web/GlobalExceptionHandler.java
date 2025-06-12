@@ -5,6 +5,7 @@ import com.swiftly.service.user.api.dto.ValidationErrorResponse;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
 import com.swiftly.service.user.domain.exception.UserNotFoundException;
+import com.swiftly.service.user.domain.exception.UserPreferencesNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -74,6 +75,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Mono<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
         return Mono.just(new ErrorResponse("USER_NOT_FOUND", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserPreferencesNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Mono<ErrorResponse> handlePrefsNotFound(UserPreferencesNotFoundException ex) {
+        return Mono.just(new ErrorResponse("USER_PREFERENCES_NOT_FOUND", ex.getMessage()));
     }
 
     /**

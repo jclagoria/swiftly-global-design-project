@@ -1,5 +1,6 @@
 package com.swiftly.service.user.adapter.in.web.controller;
 
+import com.swiftly.service.user.adapter.in.web.mapper.UserPreferencesResponseMapper;
 import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
 import com.swiftly.service.user.api.dto.*;
 import com.swiftly.service.user.application.port.in.UserService;
@@ -28,6 +29,7 @@ public class UserController {
 
     private final UserService userService;
     private final UserProfileResponseMapper userProfileResponseMapper;
+    private final UserPreferencesResponseMapper userPreferencesResponseMapper;
 
 
     /**
@@ -262,5 +264,12 @@ public class UserController {
                                 "User deleted successfully")
                 );
     }
+
+    @GetMapping("/{userId}/preferences")
+    public Mono<UserPreferenceResponse> getUserPreferences(@PathVariable UUID userId) {
+        return userService.getUserPreferences(userId)
+                .map(userPreferencesResponseMapper::toResponse);
+    }
+
 
 }
