@@ -271,5 +271,36 @@ public class UserController {
                 .map(userPreferencesResponseMapper::toResponse);
     }
 
+    @Operation(
+            summary     = "Update user preferences",
+            description = "Creates or updates the user’s preferences document in MongoDB",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content  = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema    = @Schema(implementation = UpdateUserPreferencesRequest.class)
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description  = "Updated preferences returned",
+                            content      = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema      = @Schema(implementation = UserPreferenceResponse.class)
+                            )
+                    ),
+                    @ApiResponse(responseCode = "400", description = "Validation failed"),
+                    @ApiResponse(responseCode = "404", description = "User not found")  // optional
+            }
+    )
+    @PutMapping("/{userId}/preferences")
+    public Mono<UserPreferenceResponse> updatePreferences(
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdateUserPreferencesRequest req
+    ) {
+        return userService.updateUserPreferences(userId, req)
+                .map(userPreferencesResponseMapper::toResponse);
+    }
 
 }

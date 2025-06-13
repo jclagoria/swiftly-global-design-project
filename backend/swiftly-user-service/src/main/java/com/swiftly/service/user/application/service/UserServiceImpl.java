@@ -3,6 +3,7 @@ package com.swiftly.service.user.application.service;
 import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
+import com.swiftly.service.user.adapter.out.persistence.entities.mongo.UserPreferencesEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPreferencesMapper;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
@@ -11,6 +12,7 @@ import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRe
 import com.swiftly.service.user.adapter.out.persistence.repository.mongo.UserPreferencesRepository;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
+import com.swiftly.service.user.api.dto.UpdateUserPreferencesRequest;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
 import com.swiftly.service.user.application.port.in.UserService;
 import com.swiftly.service.user.config.security.JwtTokenProvider;
@@ -218,6 +220,38 @@ public class UserServiceImpl implements UserService {
     public Mono<UserPreferencesModel> getUserPreferences(UUID userId) {
         return userPreferencesRepository.findByUserId(userId)
                 .switchIfEmpty(Mono.error(new UserPreferencesNotFoundException(userId)))
+                .map(preferencesMapper::toDomain);
+    }
+
+    @Override
+    public Mono<UserPreferencesModel> updateUserPreferences(UUID userId, UpdateUserPreferencesRequest req) {
+        Instant now = Instant.now();
+        return userPreferencesRepository.findByUserId(userId)
+                .defaultIfEmpty(new UserPreferencesEntity(null, userId, null, null,
+                        null, null, null, now ,null)
+                )
+                .flatMap(entity -> {
+                    entity.setLanguage(req.getLanguage());
+                    entity.setTimezone(req.getTimezone());
+                    entity.setDefaultCurrency(req.getDefaultCurrency());
+                    entity.setNotifications(
+                            new UserPreferencesEntity.Notifications(
+                                    req.getNotifications().isEmail(),
+                                    req.getNotifications().isSms(),
+                                    req.getNotifications().isPush(),
+                                    req.getNotifications().isInApp()
+                            )
+                    );
+                    entity.setPreferences(
+                            new UserPreferencesEntity.Preferences(
+                                    req.getPreferences().isDailyReport(),
+                                    req.getPreferences().isFraudAlerts(),
+                                    req.getPreferences().getMaxTransactionAmt()
+                            )
+                    );
+                    entity.setUpdatedAt(now);
+                    return userPreferencesRepository.save(entity);
+                })
                 .map(preferencesMapper::toDomain);
     }
 

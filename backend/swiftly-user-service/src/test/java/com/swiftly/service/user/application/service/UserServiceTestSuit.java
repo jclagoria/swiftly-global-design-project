@@ -10,7 +10,8 @@ import org.junit.platform.suite.api.Suite;
         UserServiceLoginTest.class,
         UserServiceGetUserProfileTest.class,
         UserServiceUpdateUserProfileTest.class,
-        UserServiceGetUserPreferencesTest.class
+        UserServiceGetUserPreferencesTest.class,
+        UserServiceUpdateUserPreferencesTest.class
 })
 public class UserServiceTestSuit {
 }
