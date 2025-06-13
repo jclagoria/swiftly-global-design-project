@@ -1,7 +1,9 @@
 package com.swiftly.service.user.application.port.in;
 
+import com.swiftly.service.user.adapter.out.persistence.entities.mongo.UserPreferencesEntity;
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
+import com.swiftly.service.user.api.dto.UpdateUserPreferencesRequest;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
 import com.swiftly.service.user.domain.model.UserModel;
 import com.swiftly.service.user.domain.model.UserPreferencesModel;
@@ -67,4 +69,7 @@ public interface UserService {
     Mono<Void> deleteUser(UUID userId);
 
     Mono<UserPreferencesModel> getUserPreferences(UUID userId);
+
+    Mono<UserPreferencesModel> updateUserPreferences(UUID userId,
+                                                     UpdateUserPreferencesRequest request);
 }
