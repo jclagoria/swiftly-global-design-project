@@ -3,7 +3,6 @@ package com.swiftly.service.user.adapter.in.web.controller;
 import com.swiftly.service.user.adapter.in.web.mapper.UserPreferencesResponseMapper;
 import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
 import com.swiftly.service.user.api.dto.UserPreferenceResponse;
-import com.swiftly.service.user.config.security.SecurityConfig;
 import com.swiftly.service.user.data.TestFixtures;
 import com.swiftly.service.user.domain.exception.UserPreferencesNotFoundException;
 import com.swiftly.service.user.domain.model.UserPreferencesModel;
@@ -15,8 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -29,8 +26,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@WebFluxTest(controllers = UserController.class)
-@Import(SecurityConfig.class)
 @DisplayName("UserController – GET /{userId}/preferences")
 public class UserControllerGetPreferencesTest extends AbstractUserControllerTest{
 

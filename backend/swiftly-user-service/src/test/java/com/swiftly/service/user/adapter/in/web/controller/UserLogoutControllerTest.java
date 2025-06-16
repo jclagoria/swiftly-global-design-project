@@ -1,12 +1,12 @@
 package com.swiftly.service.user.adapter.in.web.controller;
 
+import com.swiftly.service.user.adapter.in.web.mapper.UserPreferencesResponseMapper;
 import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,12 +18,14 @@ import java.util.UUID;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@WebFluxTest(controllers = UserController.class)
 @DisplayName("UserController - Logout /logout")
 public class UserLogoutControllerTest extends AbstractUserControllerTest {
 
     @MockitoBean
     private UserProfileResponseMapper responseMapper;
+
+    @MockitoBean
+    protected UserPreferencesResponseMapper userPreferencesResponseMapper;
 
     @Test
     void whenSuccess_shouldReturn204() {

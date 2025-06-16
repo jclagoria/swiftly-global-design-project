@@ -98,6 +98,28 @@ CREATE TABLE transaction_providers (
 );
 ```
 
+## 6.refresh_tokens
+
+```sql
+CREATE TABLE refresh_tokens (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    token UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    UNIQUE(token)
+);
+```
+
+### Add index for token lookup
+```sql
+CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
+CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+```
+
 ## 6. exchange_rates
 
 ```sql
@@ -119,6 +141,22 @@ CREATE TABLE revoked_tokens (
 ## 8. (Optional) Index on expires_at so you can purge old entries via a background job
 ```sql
 CREATE INDEX idx_revoked_tokens_expires_at ON revoked_tokens(expires_at);
+```
+
+## 9.1. Create a table for refresh tokens:
+```sql
+CREATE TABLE refresh_tokens (
+  token      UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ  NOT NULL,
+  revoked    BOOLEAN      NOT NULL DEFAULT FALSE
+);
+```
+
+## 9.2 Index for cleanup:
+```sql
+CREATE INDEX idx_rt_expires_at ON refresh_tokens(expires_at);
 ```
 
 ## Indexes & Constraints

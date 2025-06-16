@@ -11,7 +11,8 @@ import org.junit.platform.suite.api.Suite;
         UserServiceGetUserProfileTest.class,
         UserServiceUpdateUserProfileTest.class,
         UserServiceGetUserPreferencesTest.class,
-        UserServiceUpdateUserPreferencesTest.class
+        UserServiceUpdateUserPreferencesTest.class,
+
 })
 public class UserServiceTestSuit {
 }
