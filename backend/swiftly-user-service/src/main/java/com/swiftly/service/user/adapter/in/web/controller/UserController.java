@@ -155,8 +155,7 @@ public class UserController {
     )
     @PostMapping("/login")
     public Mono<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return userService.login(request)
-                .map(LoginResponse::new);
+        return userService.login(request);
     }
 
     /**
@@ -301,6 +300,16 @@ public class UserController {
     ) {
         return userService.updateUserPreferences(userId, req)
                 .map(userPreferencesResponseMapper::toResponse);
+    }
+
+    @Operation(summary="Refresh JWT",
+            description="Exchange a valid refresh token for a new access JWT")
+    @PostMapping("/refresh-token")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<RefreshTokenResponse> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest req
+    ) {
+        return userService.refreshToken(req);
     }
 
 }

@@ -1,10 +1,6 @@
 package com.swiftly.service.user.application.port.in;
 
-import com.swiftly.service.user.adapter.out.persistence.entities.mongo.UserPreferencesEntity;
-import com.swiftly.service.user.api.dto.LoginRequest;
-import com.swiftly.service.user.api.dto.RegisterUserRequest;
-import com.swiftly.service.user.api.dto.UpdateUserPreferencesRequest;
-import com.swiftly.service.user.api.dto.UpdateUserRequest;
+import com.swiftly.service.user.api.dto.*;
 import com.swiftly.service.user.domain.model.UserModel;
 import com.swiftly.service.user.domain.model.UserPreferencesModel;
 import com.swiftly.service.user.domain.model.UserProfileModel;
@@ -33,7 +29,7 @@ public interface UserService {
      * @param request the login request containing user credentials
      * @return a Mono emitting the UserModel of the successfully logged-in user
      */
-    Mono<String> login(LoginRequest request);
+    Mono<LoginResponse> login(LoginRequest request);
 
     /**
      * Logs out an existing user based on the provided JWT token.
@@ -68,8 +64,24 @@ public interface UserService {
      */
     Mono<Void> deleteUser(UUID userId);
 
+    /**
+     * Retrieves a user's preferences based on the provided user ID.
+     *
+     * @param userId the UUID of the user whose preferences are to be retrieved
+     * @return a Mono emitting the UserPreferencesModel associated with the given user ID
+     */
     Mono<UserPreferencesModel> getUserPreferences(UUID userId);
 
+    /**
+     * Updates an existing user's preferences based on the provided request.
+     *
+     * @param userId                the UUID of the user whose preferences are to be updated
+     * @param updateUserPreferencesRequest the request containing the new user preferences
+     * @return a Mono emitting the UserPreferencesModel associated with the given user ID
+     *         after the update operation
+     */
     Mono<UserPreferencesModel> updateUserPreferences(UUID userId,
-                                                     UpdateUserPreferencesRequest request);
+                                                     UpdateUserPreferencesRequest updateUserPreferencesRequest);
+
+    Mono<RefreshTokenResponse> refreshToken(RefreshTokenRequest request);
 }

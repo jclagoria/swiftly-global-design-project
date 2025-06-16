@@ -4,15 +4,12 @@ import com.swiftly.service.user.adapter.in.web.mapper.UserPreferencesResponseMap
 import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
 import com.swiftly.service.user.api.dto.UpdateUserPreferencesRequest;
 import com.swiftly.service.user.api.dto.UserPreferenceResponse;
-import com.swiftly.service.user.config.security.SecurityConfig;
 import com.swiftly.service.user.domain.model.UserPreferencesModel;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -23,8 +20,6 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-@WebFluxTest(controllers = UserController.class)
-@Import(SecurityConfig.class)
 @DisplayName("UserController – PUT /{userId}/preferences")
 public class UserControllerUpdatePreferencesTest extends AbstractUserControllerTest {
 

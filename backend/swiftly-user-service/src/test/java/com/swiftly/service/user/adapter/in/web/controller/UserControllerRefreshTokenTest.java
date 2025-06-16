@@ -2,9 +2,8 @@ package com.swiftly.service.user.adapter.in.web.controller;
 
 import com.swiftly.service.user.adapter.in.web.mapper.UserPreferencesResponseMapper;
 import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
-import com.swiftly.service.user.api.dto.OperationResultResponse;
-import com.swiftly.service.user.api.dto.UpdateUserRequest;
-import com.swiftly.service.user.domain.exception.UserNotFoundException;
+import com.swiftly.service.user.api.dto.RefreshTokenRequest;
+import com.swiftly.service.user.api.dto.RefreshTokenResponse;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,18 +23,17 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@DisplayName("UserController - PUT /{userId}")
-public class UserControllerUpdateUserDetailsTest extends AbstractUserControllerTest {
+@DisplayName("UserController - POST /refresh-token")
+public class UserControllerRefreshTokenTest extends AbstractUserControllerTest {
 
     @MockitoBean
     private UserProfileResponseMapper responseMapper;
 
     @MockitoBean
-    protected UserPreferencesResponseMapper userPreferencesResponseMapper;// ← mock the mapper
+    protected UserPreferencesResponseMapper userPreferencesResponseMapper;
 
     private String token;
 
@@ -47,18 +45,18 @@ public class UserControllerUpdateUserDetailsTest extends AbstractUserControllerT
     }
 
     @Nested
-    @DisplayName("updateUserDetails")
-    class UpdateUserDetailsTests {
+    @DisplayName("refreshToken")
+    class RefreshTokenTests {
 
-        private String url(UUID userId) {
-            return BASE + "/" + userId;
+        private String url() {
+            return BASE + "/refresh-token";
         }
 
-        private WebTestClient.ResponseSpec performPut(UUID userId, UpdateUserRequest req) {
-            return webClient.put()
-                    .uri(url(userId))
-                    .contentType(MediaType.APPLICATION_JSON)
+        private WebTestClient.ResponseSpec performPost(RefreshTokenRequest req) {
+            return webClient.post()
+                    .uri(url())
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(req)
                     .exchange();
         }
@@ -66,78 +64,54 @@ public class UserControllerUpdateUserDetailsTest extends AbstractUserControllerT
         @Test
         @DisplayName("when success, should return 200 and valid body")
         void whenSuccess_shouldReturn200() {
-            UUID userId = UUID.randomUUID();
-            UpdateUserRequest req = sampleUpdate();
+            RefreshTokenRequest req = sampleRefreshRequest();
+            RefreshTokenResponse expected = RefreshTokenResponse.builder()
+                    .token("new-access-token")
+                    .build();
 
-            when(userService.updateUserProfile(
-                        eq(userId),
-                        any(UpdateUserRequest.class)
-                )).thenReturn(Mono.empty());
+            when(userService.refreshToken(any(RefreshTokenRequest.class)))
+                    .thenReturn(Mono.just(expected));
 
-            performPut(userId, req)
+            performPost(req)
                     .expectStatus().isOk()
-                    .expectBody(OperationResultResponse.class)
-                    .value(resp -> {
-                        assertEquals("UPDATE_OK", resp.getCode());
-                        assertEquals("User updated successfully", resp.getMessage());
-                    });
+                    .expectBody(RefreshTokenResponse.class)
+                    .value(resp -> assertEquals(expected.getToken(), resp.getToken()));
         }
 
         @Test
         @DisplayName("when validation fails (missing required fields), should return 400")
         void whenValidationFails_shouldReturn400() {
-            UUID userId = UUID.randomUUID();
-            UpdateUserRequest req = UpdateUserRequest.builder().build();
+            RefreshTokenRequest req = RefreshTokenRequest.builder().build();
 
-            performPut(userId, req)
+            performPost(req)
                     .expectStatus().isBadRequest()
                     .expectBody()
                     .jsonPath("$.status").isEqualTo(400)
                     .jsonPath("$.error").isEqualTo("Bad Request");
         }
 
-        @ParameterizedTest(name = "[{index}] error: {1}")
+        @ParameterizedTest(name = "[{index}] error: {0}")
         @MethodSource("errorScenarios")
         @DisplayName("when service error, should map to proper status and body")
         void whenError_shouldReturnProperStatusAndBody(
-                UUID userId,
                 Throwable exception,
                 int expectedStatus,
                 String jsonPath,
                 String expectedValue
         ) {
-            when(userService.updateUserProfile(eq(userId), any(UpdateUserRequest.class)))
+            RefreshTokenRequest req = sampleRefreshRequest();
+            when(userService.refreshToken(any(RefreshTokenRequest.class)))
                     .thenReturn(Mono.error(exception));
 
-            UpdateUserRequest req = UpdateUserRequest.builder()
-                    .firstName("X").lastName("Y").build();
-
-            performPut(userId, req)
+            performPost(req)
                     .expectStatus().isEqualTo(expectedStatus)
                     .expectBody()
                     .jsonPath(jsonPath).isEqualTo(expectedValue);
         }
 
         static Stream<Arguments> errorScenarios() {
-            UUID missingId = UUID.randomUUID();
-            UUID failId    = UUID.randomUUID();
             return Stream.of(
                     Arguments.of(
-                            missingId,
-                            new UserNotFoundException(missingId),
-                            404,
-                            "$.message",
-                            "USER_NOT_FOUND"
-                    ),
-                    Arguments.of(
-                            missingId,
-                            new UserNotFoundException(missingId),
-                            404,
-                            "$.code",
-                            "User not found with ID: " + missingId
-                    ),
-                    Arguments.of(
-                            failId,
                             new RuntimeException("DB fail"),
                             500,
                             "$.message",
@@ -145,5 +119,12 @@ public class UserControllerUpdateUserDetailsTest extends AbstractUserControllerT
                     )
             );
         }
+
+        private RefreshTokenRequest sampleRefreshRequest() {
+            return RefreshTokenRequest.builder()
+                    .refreshToken(easyRandom.nextObject(String.class))
+                    .build();
+        }
     }
+
 }
