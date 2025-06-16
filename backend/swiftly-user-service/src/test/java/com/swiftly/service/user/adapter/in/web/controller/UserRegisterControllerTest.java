@@ -39,7 +39,7 @@ public class UserRegisterControllerTest extends AbstractUserControllerTest {
                 .lastName(req.getLastName())
                 .build();
 
-        when(userService.register(any())).thenReturn(Mono.just(model));
+        when(userManagementService.register(any())).thenReturn(Mono.just(model));
 
         webClient.post().uri(BASE + "/register")
                 .bodyValue(req)
@@ -60,7 +60,7 @@ public class UserRegisterControllerTest extends AbstractUserControllerTest {
             String messagePath,
             String expectedMessage
     ) {
-        when(userService.register(any())).thenReturn(Mono.error(exception));
+        when(userManagementService.register(any())).thenReturn(Mono.error(exception));
 
         webClient.post().uri(BASE + "/register")
                 .bodyValue(sampleRegister())

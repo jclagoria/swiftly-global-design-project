@@ -59,7 +59,7 @@ public class UserControllerDeleteUserTest extends AbstractUserControllerTest {
         void whenSuccess_shouldReturn200() {
             UUID userId = UUID.randomUUID();
             // service.deleteUser returns empty on success
-            when(userService.deleteUser(eq(userId))).thenReturn(Mono.empty());
+            when(userManagementService.deleteUser(eq(userId))).thenReturn(Mono.empty());
 
             performDelete(userId)
                     .expectStatus().isOk()
@@ -78,7 +78,7 @@ public class UserControllerDeleteUserTest extends AbstractUserControllerTest {
                 String jsonPath,
                 String expectedMessage
         ) {
-            when(userService.deleteUser(eq(userId))).thenReturn(Mono.error(exception));
+            when(userManagementService.deleteUser(eq(userId))).thenReturn(Mono.error(exception));
 
             performDelete(userId)
                     .expectStatus().isEqualTo(expectedStatus)

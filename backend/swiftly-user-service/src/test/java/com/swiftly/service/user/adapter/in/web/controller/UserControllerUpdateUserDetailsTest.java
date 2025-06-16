@@ -69,7 +69,7 @@ public class UserControllerUpdateUserDetailsTest extends AbstractUserControllerT
             UUID userId = UUID.randomUUID();
             UpdateUserRequest req = sampleUpdate();
 
-            when(userService.updateUserProfile(
+            when(profileService.updateUserProfile(
                         eq(userId),
                         any(UpdateUserRequest.class)
                 )).thenReturn(Mono.empty());
@@ -106,7 +106,7 @@ public class UserControllerUpdateUserDetailsTest extends AbstractUserControllerT
                 String jsonPath,
                 String expectedValue
         ) {
-            when(userService.updateUserProfile(eq(userId), any(UpdateUserRequest.class)))
+            when(profileService.updateUserProfile(eq(userId), any(UpdateUserRequest.class)))
                     .thenReturn(Mono.error(exception));
 
             UpdateUserRequest req = UpdateUserRequest.builder()

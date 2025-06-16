@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService-getUserPreferences()")
-public class UserServiceGetUserPreferencesTest {
+public class UserServiceGetPreferencesPreferencesTest {
 
     @Mock
     private UserPreferencesRepository userPreferencesRepository;
@@ -30,7 +30,7 @@ public class UserServiceGetUserPreferencesTest {
     private UserPreferencesMapper preferencesMapper;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private PreferencesServiceImpl userService;
 
     @Test
     @DisplayName("throws when preferences not found")

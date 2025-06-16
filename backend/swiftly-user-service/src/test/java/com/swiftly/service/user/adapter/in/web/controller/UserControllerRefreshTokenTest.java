@@ -69,7 +69,7 @@ public class UserControllerRefreshTokenTest extends AbstractUserControllerTest {
                     .token("new-access-token")
                     .build();
 
-            when(userService.refreshToken(any(RefreshTokenRequest.class)))
+            when(authService.refreshToken(any(RefreshTokenRequest.class)))
                     .thenReturn(Mono.just(expected));
 
             performPost(req)
@@ -100,7 +100,7 @@ public class UserControllerRefreshTokenTest extends AbstractUserControllerTest {
                 String expectedValue
         ) {
             RefreshTokenRequest req = sampleRefreshRequest();
-            when(userService.refreshToken(any(RefreshTokenRequest.class)))
+            when(authService.refreshToken(any(RefreshTokenRequest.class)))
                     .thenReturn(Mono.error(exception));
 
             performPost(req)

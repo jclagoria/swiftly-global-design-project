@@ -4,7 +4,10 @@ import com.swiftly.service.user.adapter.out.persistence.repository.RevokedTokenR
 import com.swiftly.service.user.api.dto.LoginRequest;
 import com.swiftly.service.user.api.dto.RegisterUserRequest;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
-import com.swiftly.service.user.application.port.in.UserService;
+import com.swiftly.service.user.application.port.in.AuthService;
+import com.swiftly.service.user.application.port.in.ProfileService;
+import com.swiftly.service.user.application.port.in.UserManagementService;
+import com.swiftly.service.user.application.port.in.PreferencesService;
 import com.swiftly.service.user.config.security.JwtTokenProvider;
 import com.swiftly.service.user.config.security.SecurityConfig;
 import org.jeasy.random.EasyRandom;
@@ -27,7 +30,16 @@ public class AbstractUserControllerTest {
     protected WebTestClient webClient;
 
     @MockitoBean
-    protected UserService userService;
+    protected PreferencesService preferencesService;
+
+    @MockitoBean
+    protected UserManagementService userManagementService;
+
+    @MockitoBean
+    protected AuthService authService;
+
+    @MockitoBean
+    protected ProfileService profileService;
 
     @MockitoBean
     protected JwtTokenProvider jwtTokenProvider;

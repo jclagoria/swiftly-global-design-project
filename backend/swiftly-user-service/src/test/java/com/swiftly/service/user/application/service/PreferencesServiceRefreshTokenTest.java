@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService-refreshToken()")
-public class UserServiceRefreshTokenTest {
+public class PreferencesServiceRefreshTokenTest {
 
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
@@ -33,7 +33,7 @@ public class UserServiceRefreshTokenTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private AuthServiceImpl authService;
 
     @Test
     @DisplayName("throws InvalidCredentialsException when token not found")
@@ -46,7 +46,7 @@ public class UserServiceRefreshTokenTest {
         when(refreshTokenRepository.findByTokenAndRevokedFalse(refreshTokenId))
                 .thenReturn(Mono.empty());
 
-        StepVerifier.create(userService.refreshToken(request))
+        StepVerifier.create(authService.refreshToken(request))
                 .expectError(InvalidCredentialsException.class)
                 .verify();
     }
@@ -67,7 +67,7 @@ public class UserServiceRefreshTokenTest {
                 .refreshToken(tokenId.toString())
                 .build();
 
-        StepVerifier.create(userService.refreshToken(request))
+        StepVerifier.create(authService.refreshToken(request))
                 .expectError(InvalidCredentialsException.class)
                 .verify();
     }
@@ -112,7 +112,7 @@ public class UserServiceRefreshTokenTest {
                 .build();
 
         // Act & Assert
-        StepVerifier.create(userService.refreshToken(request))
+        StepVerifier.create(authService.refreshToken(request))
                 .expectNextMatches(response ->
                         newJwt.equals(response.getToken()) &&
                                 newRefreshTokenId.toString().equals(response.getRefreshToken())
@@ -139,7 +139,7 @@ public class UserServiceRefreshTokenTest {
                 .refreshToken(tokenId.toString())
                 .build();
 
-        StepVerifier.create(userService.refreshToken(request))
+        StepVerifier.create(authService.refreshToken(request))
                 .expectErrorMessage("revocation failure")
                 .verify();
     }
@@ -166,7 +166,7 @@ public class UserServiceRefreshTokenTest {
                 .refreshToken(tokenId.toString())
                 .build();
 
-        StepVerifier.create(userService.refreshToken(request))
+        StepVerifier.create(authService.refreshToken(request))
                 .expectErrorMessage("new token failure")
                 .verify();
     }

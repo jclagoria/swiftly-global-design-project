@@ -2,7 +2,7 @@ package com.swiftly.service.user.application.service;
 
 import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
-import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
+import com.swiftly.service.user.adapter.out.persistence.repository.UserRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
 import com.swiftly.service.user.api.dto.UpdateUserRequest;
 import com.swiftly.service.user.data.TestFixtures;
@@ -22,16 +22,16 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService-updateUserProfile()")
-public class UserServiceUpdateUserProfileTest {
+public class UserServiceUpdatePreferencesProfileTest {
 
     @Mock
-    UserEntityRepository userRepository;
+    UserRepository userRepository;
 
     @Mock
     UserProfileRepository userProfileRepository;
 
     @InjectMocks
-    UserServiceImpl userService;
+    ProfileServiceImpl profileService;
 
     @Test
     @DisplayName("throws when user not found")
@@ -44,7 +44,7 @@ public class UserServiceUpdateUserProfileTest {
         when(userProfileRepository.findById(userId))
                 .thenReturn(Mono.just(TestFixtures.randomProfileEntity()));
 
-        StepVerifier.create(userService.updateUserProfile(userId, req))
+        StepVerifier.create(profileService.updateUserProfile(userId, req))
                 .expectErrorMatches(ex ->
                         ex instanceof UserNotFoundException
                                 && ex.getMessage().contains(userId.toString()))
@@ -65,7 +65,7 @@ public class UserServiceUpdateUserProfileTest {
         when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.just(user));
         when(userProfileRepository.findById(userId)).thenReturn(Mono.empty());
 
-        StepVerifier.create(userService.updateUserProfile(userId, req))
+        StepVerifier.create(profileService.updateUserProfile(userId, req))
                 .verifyComplete();
 
         verify(userRepository).findByIdAndDeletedIsFalse(userId);
@@ -90,7 +90,7 @@ public class UserServiceUpdateUserProfileTest {
         when(userProfileRepository.save(any(UserProfileEntity.class)))
                 .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
 
-        StepVerifier.create(userService.updateUserProfile(userId, req))
+        StepVerifier.create(profileService.updateUserProfile(userId, req))
                 .verifyComplete();
 
         verify(userRepository).save(argThat(u ->
@@ -130,7 +130,7 @@ public class UserServiceUpdateUserProfileTest {
         when(userProfileRepository.save(any(UserProfileEntity.class)))
                 .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
 
-        StepVerifier.create(userService.updateUserProfile(userId, req))
+        StepVerifier.create(profileService.updateUserProfile(userId, req))
                 .verifyComplete();
 
         // only address & timezone changed, phone/locale unchanged

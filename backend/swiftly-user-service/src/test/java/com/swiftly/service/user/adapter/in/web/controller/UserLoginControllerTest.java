@@ -36,7 +36,7 @@ public class UserLoginControllerTest extends AbstractUserControllerTest {
         var req = sampleLogin();
         LoginResponse loginResponse = easyRandom.nextObject(LoginResponse.class);
 
-        when(userService.login(any())).thenReturn(Mono.just(loginResponse));
+        when(authService.login(any())).thenReturn(Mono.just(loginResponse));
 
         webClient.post().uri(BASE + "/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -59,7 +59,7 @@ public class UserLoginControllerTest extends AbstractUserControllerTest {
             String messagePath,
             String expectedMessage
     ) {
-        when(userService.login(any())).thenReturn(Mono.error(exception));
+        when(authService.login(any())).thenReturn(Mono.error(exception));
 
         webClient.post().uri(BASE + "/login")
                 .contentType(MediaType.APPLICATION_JSON)

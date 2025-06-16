@@ -70,7 +70,7 @@ public class UserControllerGetProfileTest extends AbstractUserControllerTest {
                     model.getCreatedAt(), model.getPhone(), model.getAddress(), model.getLocale(),
                     model.getTimezone(), model.getUpdatedAt());
 
-            when(userService.getUserProfile(eq(userId))).thenReturn(Mono.just(model));
+            when(profileService.getUserProfile(eq(userId))).thenReturn(Mono.just(model));
             when(responseMapper.toResponse(eq(model))).thenReturn(response);
 
             performGet(userId)
@@ -96,7 +96,7 @@ public class UserControllerGetProfileTest extends AbstractUserControllerTest {
                 String jsonPath,
                 String expectedMessage
         ) {
-            when(userService.getUserProfile(eq(userId))).thenReturn(Mono.error(exception));
+            when(profileService.getUserProfile(eq(userId))).thenReturn(Mono.error(exception));
 
             performGet(userId)
                     .expectStatus().isEqualTo(expectedStatus)

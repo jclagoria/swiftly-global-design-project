@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService-updateUserPreferences()")
-public class UserServiceUpdateUserPreferencesTest {
+public class UserServiceUpdatePreferencesPreferencesTest {
 
     @Mock
     private UserPreferencesRepository userPreferencesRepository;
@@ -36,7 +36,7 @@ public class UserServiceUpdateUserPreferencesTest {
     private UserPreferencesMapper preferencesMapper;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private PreferencesServiceImpl userService;
 
     @Captor
     private ArgumentCaptor<UserPreferencesEntity> entityCaptor;

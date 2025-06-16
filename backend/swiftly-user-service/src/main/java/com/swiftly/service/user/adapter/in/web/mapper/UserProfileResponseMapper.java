@@ -8,7 +8,8 @@ import org.mapstruct.ReportingPolicy;
 
 @Mapper(
         componentModel     = "spring",
-        unmappedTargetPolicy = ReportingPolicy.ERROR
+        unmappedTargetPolicy = ReportingPolicy.ERROR,
+        unmappedSourcePolicy = ReportingPolicy.IGNORE
 )
 public interface UserProfileResponseMapper {
 

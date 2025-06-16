@@ -3,7 +3,10 @@ package com.swiftly.service.user.adapter.in.web.controller;
 import com.swiftly.service.user.adapter.in.web.mapper.UserPreferencesResponseMapper;
 import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
 import com.swiftly.service.user.api.dto.*;
-import com.swiftly.service.user.application.port.in.UserService;
+import com.swiftly.service.user.application.port.in.AuthService;
+import com.swiftly.service.user.application.port.in.PreferencesService;
+import com.swiftly.service.user.application.port.in.ProfileService;
+import com.swiftly.service.user.application.port.in.UserManagementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,7 +30,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserManagementService userManagementService;
+    private final PreferencesService preferencesService;
+    private final AuthService authService;
+    private final ProfileService profileService;
     private final UserProfileResponseMapper userProfileResponseMapper;
     private final UserPreferencesResponseMapper userPreferencesResponseMapper;
 
@@ -104,7 +110,7 @@ public class UserController {
     public Mono<UserCreationResponse> register(
             @Valid @RequestBody RegisterUserRequest request
     ) {
-        return userService.register(request)
+        return userManagementService.register(request)
                 .map(createdUser -> new UserCreationResponse(
                         "User registered successfully",
                         createdUser.getId()
@@ -155,7 +161,7 @@ public class UserController {
     )
     @PostMapping("/login")
     public Mono<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return userService.login(request);
+        return authService.login(request);
     }
 
     /**
@@ -193,7 +199,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> logout(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7);
-        return userService.logout(token);
+        return authService.logout(token);
     }
 
     @Operation(
@@ -211,7 +217,7 @@ public class UserController {
     )
     @GetMapping("/{userId}")
     public Mono<UserProfileResponse> getProfile(@PathVariable UUID userId) {
-        return userService.getUserProfile(userId)
+        return profileService.getUserProfile(userId)
                 .map(userProfileResponseMapper::toResponse);
 
     }
@@ -247,7 +253,7 @@ public class UserController {
             @PathVariable UUID userId,
             @Valid @RequestBody UpdateUserRequest request
     ) {
-        return userService.updateUserProfile(userId, request)
+        return profileService.updateUserProfile(userId, request)
                 .thenReturn(OperationResultResponse
                         .builder()
                         .code("UPDATE_OK")
@@ -257,7 +263,7 @@ public class UserController {
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<OperationResultResponse> deleteUser(@PathVariable UUID userId) {
-        return userService.deleteUser(userId)
+        return userManagementService.deleteUser(userId)
                 .thenReturn(
                         new OperationResultResponse("DELETE_OK",
                                 "User deleted successfully")
@@ -266,7 +272,7 @@ public class UserController {
 
     @GetMapping("/{userId}/preferences")
     public Mono<UserPreferenceResponse> getUserPreferences(@PathVariable UUID userId) {
-        return userService.getUserPreferences(userId)
+        return preferencesService.getUserPreferences(userId)
                 .map(userPreferencesResponseMapper::toResponse);
     }
 
@@ -298,7 +304,7 @@ public class UserController {
             @PathVariable UUID userId,
             @Valid @RequestBody UpdateUserPreferencesRequest req
     ) {
-        return userService.updateUserPreferences(userId, req)
+        return preferencesService.updateUserPreferences(userId, req)
                 .map(userPreferencesResponseMapper::toResponse);
     }
 
@@ -309,7 +315,7 @@ public class UserController {
     public Mono<RefreshTokenResponse> refreshToken(
             @Valid @RequestBody RefreshTokenRequest req
     ) {
-        return userService.refreshToken(req);
+        return authService.refreshToken(req);
     }
 
 }

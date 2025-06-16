@@ -3,8 +3,8 @@ package com.swiftly.service.user.application.service;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
-import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
+import com.swiftly.service.user.adapter.out.persistence.repository.UserRepository;
 import com.swiftly.service.user.data.TestFixtures;
 import com.swiftly.service.user.domain.exception.UserNotFoundException;
 import org.junit.jupiter.api.DisplayName;
@@ -23,10 +23,10 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("UserService-getUserProfile()")
-public class UserServiceGetUserProfileTest {
+public class UserServiceGetPreferencesProfileTest {
 
     @Mock
-    UserEntityRepository userRepository;
+    UserRepository userRepository;
     @Mock
     UserProfileRepository userProfileRepository;
     @Mock
@@ -35,7 +35,7 @@ public class UserServiceGetUserProfileTest {
     UserProfileMapper profileMapper;
 
     @InjectMocks
-    UserServiceImpl userService;
+    ProfileServiceImpl profileService;
 
     @Test
     @DisplayName("throws when user not found")
@@ -43,7 +43,7 @@ public class UserServiceGetUserProfileTest {
         UUID userId = UUID.randomUUID();
         when(userRepository.findByIdAndDeletedIsFalse(userId)).thenReturn(Mono.empty());
 
-        StepVerifier.create(userService.getUserProfile(userId))
+        StepVerifier.create(profileService.getUserProfile(userId))
                 .expectErrorMatches(throwable -> throwable instanceof UserNotFoundException
                         && throwable.getMessage().contains(userId.toString()))
                 .verify();
@@ -63,7 +63,7 @@ public class UserServiceGetUserProfileTest {
         when(userProfileRepository.findById(userId)).thenReturn(Mono.just(profileEntity));
         when(profileMapper.toModel(userModel, profileEntity)).thenReturn(expectedModel);
 
-        StepVerifier.create(userService.getUserProfile(userId))
+        StepVerifier.create(profileService.getUserProfile(userId))
                 .expectNext(expectedModel)
                 .verifyComplete();
 
@@ -85,7 +85,7 @@ public class UserServiceGetUserProfileTest {
         when(userProfileRepository.findById(userId)).thenReturn(Mono.empty());
         when(profileMapper.toModel(userModel, defaultEntity)).thenReturn(expectedModel);
 
-        StepVerifier.create(userService.getUserProfile(userId))
+        StepVerifier.create(profileService.getUserProfile(userId))
                 .expectNext(expectedModel)
                 .verifyComplete();
     }

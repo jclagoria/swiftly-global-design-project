@@ -106,7 +106,7 @@ public class UserControllerUpdatePreferencesTest extends AbstractUserControllerT
             );
 
             // *** stub with any(...) ***
-            when(userService.updateUserPreferences(
+            when(preferencesService.updateUserPreferences(
                     eq(userId),
                     any(UpdateUserPreferencesRequest.class))
             )
@@ -149,7 +149,7 @@ public class UserControllerUpdatePreferencesTest extends AbstractUserControllerT
             UUID userId = UUID.randomUUID();
             UpdateUserPreferencesRequest req = easyRandom.nextObject(UpdateUserPreferencesRequest.class);
 
-            when(userService.updateUserPreferences(
+            when(preferencesService.updateUserPreferences(
                     eq(userId),
                     any(UpdateUserPreferencesRequest.class))
             )

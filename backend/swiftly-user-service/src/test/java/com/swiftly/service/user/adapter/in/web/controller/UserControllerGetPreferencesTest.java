@@ -77,7 +77,7 @@ public class UserControllerGetPreferencesTest extends AbstractUserControllerTest
 
             when(responseMapper.toResponse(eq(model)))
                     .thenReturn(dto);
-            when(userService.getUserPreferences(eq(userId)))
+            when(preferencesService.getUserPreferences(eq(userId)))
                     .thenReturn(Mono.just(model));
 
             performGet(userId)
@@ -93,7 +93,7 @@ public class UserControllerGetPreferencesTest extends AbstractUserControllerTest
         @DisplayName("when not found, should return 404")
         void whenNotFound_shouldReturn404() {
             UUID userId = UUID.randomUUID();
-            when(userService.getUserPreferences(eq(userId)))
+            when(preferencesService.getUserPreferences(eq(userId)))
                     .thenReturn(Mono.error(new UserPreferencesNotFoundException(userId)));
 
             performGet(userId)
@@ -114,7 +114,7 @@ public class UserControllerGetPreferencesTest extends AbstractUserControllerTest
                 String jsonPath,
                 String expectedMessage
         ) {
-            when(userService.getUserPreferences(eq(userId)))
+            when(preferencesService.getUserPreferences(eq(userId)))
                     .thenReturn(Mono.error(exception));
 
             performGet(userId)

@@ -14,6 +14,7 @@ import java.util.UUID;
 @Mapper(
         componentModel = "spring",
         unmappedTargetPolicy = ReportingPolicy.ERROR,
+        unmappedSourcePolicy = ReportingPolicy.IGNORE,
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface UserProfileMapper {

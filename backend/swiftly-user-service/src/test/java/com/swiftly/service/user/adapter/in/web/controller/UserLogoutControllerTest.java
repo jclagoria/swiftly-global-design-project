@@ -32,7 +32,7 @@ public class UserLogoutControllerTest extends AbstractUserControllerTest {
         String token = UUID.randomUUID().toString();
         when(jwtTokenProvider.parseClaims(token)).thenReturn(mock(Claims.class));
         when(revokedTokenRepository.existsByToken(token)).thenReturn(Mono.just(false));
-        when(userService.logout(token)).thenReturn(Mono.empty());
+        when(authService.logout(token)).thenReturn(Mono.empty());
 
         webClient.post()
                 .uri(BASE + "/logout")
@@ -69,7 +69,7 @@ public class UserLogoutControllerTest extends AbstractUserControllerTest {
         String token = UUID.randomUUID().toString();
         when(jwtTokenProvider.parseClaims(token)).thenReturn(mock(Claims.class));
         when(revokedTokenRepository.existsByToken(token)).thenReturn(Mono.just(false));
-        when(userService.logout(token))
+        when(authService.logout(token))
                 .thenReturn(Mono.error(new RuntimeException("DB fail")));
 
         webClient.post()

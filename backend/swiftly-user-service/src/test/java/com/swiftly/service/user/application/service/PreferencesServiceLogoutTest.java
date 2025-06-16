@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class UserServiceLogoutTest {
+public class PreferencesServiceLogoutTest {
 
     @Mock
     JwtTokenProvider jwtTokenProvider;
@@ -32,7 +32,7 @@ public class UserServiceLogoutTest {
     R2dbcEntityTemplate r2dbcTemplate;
 
     @InjectMocks
-    UserServiceImpl userService;
+    AuthServiceImpl authService;
 
     private AutoCloseable mocksTest;
 
@@ -62,7 +62,7 @@ public class UserServiceLogoutTest {
         when(r2dbcTemplate.insert(RevokedTokenEntity.class)).thenReturn(insert);
         when(insert.using(any(RevokedTokenEntity.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(userService.logout(token))
+        StepVerifier.create(authService.logout(token))
                 .verifyComplete();
     }
 
@@ -80,7 +80,7 @@ public class UserServiceLogoutTest {
         when(insert.using(any(RevokedTokenEntity.class)))
                 .thenReturn(Mono.error(new RuntimeException("fail")));
 
-        StepVerifier.create(userService.logout(token))
+        StepVerifier.create(authService.logout(token))
                 .expectErrorMessage("fail")
                 .verify();
     }
