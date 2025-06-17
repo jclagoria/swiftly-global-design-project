@@ -16,6 +16,14 @@ Implement security measures including OAuth2, JWT, and AES encryption.
 
 Deploy to Kubernetes with CI/CD pipelines.
 
+Kick off Quarkus API Gateway project setup (with Maven plugin command).
+
+Develop and test dynamic service discovery loader.
+
+Implement and validate JWT authorization filter.
+
+Configure and verify health, status, rate-limit, and metrics endpoints.
+
 == Milestones
 
 Week 1-2: Backend setup, database schema design.
