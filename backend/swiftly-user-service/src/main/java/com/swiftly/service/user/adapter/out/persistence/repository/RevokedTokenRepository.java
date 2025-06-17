@@ -1,7 +1,9 @@
 package com.swiftly.service.user.adapter.out.persistence.repository;
 
 import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEntity;
+import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
+import org.springframework.data.repository.query.Param;
 import reactor.core.publisher.Mono;
 
 /**
@@ -19,5 +21,19 @@ public interface RevokedTokenRepository extends R2dbcRepository<RevokedTokenEnti
      * @return a Mono that emits a boolean indicating whether the token exists
      */
     Mono<Boolean> existsByToken(String token);
+
+    /**
+     * Inserts a new revoked token into the database.
+     *
+     * @param revokedTokenEntity the RevokedTokenEntity to be inserted
+     * @return a Mono emitting a void value, indicating the insertion was successful
+     */
+    @Query("""
+        INSERT INTO revoked_tokens(token, expires_at)
+          VALUES (:#{#p.token},
+                  :#{#p.expiresAt}
+                 )
+    """)
+    Mono<Void> insert(@Param("p") RevokedTokenEntity revokedTokenEntity);
 
 }
