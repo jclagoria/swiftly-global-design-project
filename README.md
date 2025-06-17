@@ -13,7 +13,9 @@ The project "Swiftly Global" aims to facilitate fast and secure cross-border tra
     - Implement **Spring WebFlux** for reactive, non-blocking processing, optimizing real-time transaction handling.
     - Use **Spring Security** for authentication and authorization (OAuth2, JWT tokens) and encryption of sensitive data.
     - Integrate **Spring Data R2DBC** for reactive relational database interactions and **GraphQL** via **Spring GraphQL** (WebFlux) for producing and consuming graph-based APIs.
+    - Some projects use **Quarkus-based**  
     - Incorporate **Hexagonal Architecture** and **SOLID principles** to ensure modularity, maintainability, and testability.
+
 
 #### **Database**
 
