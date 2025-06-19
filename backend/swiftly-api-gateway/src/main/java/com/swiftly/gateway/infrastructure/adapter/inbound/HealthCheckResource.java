@@ -31,8 +31,12 @@ public class HealthCheckResource {
 
     private static final Logger LOGGER = Logger.getLogger(HealthCheckResource.class);
 
+    private final HealthCheckPort healthUseCase;
+
     @Inject
-    HealthCheckPort healthUseCase;
+    public HealthCheckResource(HealthCheckPort healthUseCase) {
+        this.healthUseCase = healthUseCase;
+    }
 
     @GET
     @Counted(name="health_requests_total", description="Total /health calls")
