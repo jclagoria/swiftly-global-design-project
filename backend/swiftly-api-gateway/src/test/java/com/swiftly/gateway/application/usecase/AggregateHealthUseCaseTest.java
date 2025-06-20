@@ -2,7 +2,7 @@ package com.swiftly.gateway.application.usecase;
 
 import com.swiftly.gateway.domain.model.HealthStatus;
 import com.swiftly.gateway.domain.port.outbound.ServiceDiscoveryPort;
-import com.swiftly.gateway.fixtures.TestFixtures;
+import com.swiftly.gateway.fixtures.TestFixturesAdapter;
 import com.swiftly.gateway.infrastructure.client.DownstreamHealthClient;
 import com.swiftly.gateway.infrastructure.client.DownstreamHealthResponse;
 import io.smallrye.mutiny.Uni;
@@ -49,9 +49,9 @@ class AggregateHealthUseCaseTest {
     @DisplayName("Check all services happy path")
     void testCheckAllHappyPath() {
         // Arrange
-        List<String> services = TestFixtures.services();
+        List<String> services = TestFixturesAdapter.services();
         given(serviceDiscoveryPort.getRegisteredServices()).willReturn(Uni.createFrom().item(services));
-        DownstreamHealthResponse response = TestFixtures.healthyDownstreamResponse();
+        DownstreamHealthResponse response = TestFixturesAdapter.healthyDownstreamResponse();
         services.forEach(s ->
                 given(downstreamHealthClient.checkHealth(s)).willReturn(Uni.createFrom().item(response))
         );
@@ -102,10 +102,10 @@ class AggregateHealthUseCaseTest {
     @DisplayName("Check all with partial failure")
     void testCheckAllPartialFailure() {
         // Arrange: one healthy, one failing service
-        List<String> services = TestFixtures.services();
+        List<String> services = TestFixturesAdapter.services();
         given(serviceDiscoveryPort.getRegisteredServices()).willReturn(Uni.createFrom().item(services));
         given(downstreamHealthClient.checkHealth("serviceA"))
-                .willReturn(Uni.createFrom().item(TestFixtures.healthyDownstreamResponse()));
+                .willReturn(Uni.createFrom().item(TestFixturesAdapter.healthyDownstreamResponse()));
         given(downstreamHealthClient.checkHealth("serviceB"))
                 .willReturn(Uni.createFrom().failure(new RuntimeException("timeout")));
 
@@ -140,7 +140,7 @@ class AggregateHealthUseCaseTest {
         given(serviceDiscoveryPort.getRegisteredServices()).willReturn(Uni.createFrom().item(services));
         services.forEach(s ->
                 given(downstreamHealthClient.checkHealth(s))
-                        .willReturn(Uni.createFrom().item(TestFixtures.healthyDownstreamResponse()))
+                        .willReturn(Uni.createFrom().item(TestFixturesAdapter.healthyDownstreamResponse()))
         );
 
         // Act

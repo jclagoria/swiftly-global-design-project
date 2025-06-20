@@ -2,7 +2,7 @@ package com.swiftly.gateway.infrastructure.adapter.inbound;
 
 import com.swiftly.gateway.domain.model.HealthStatus;
 import com.swiftly.gateway.domain.port.inbound.HealthCheckPort;
-import com.swiftly.gateway.fixtures.TestFixtures;
+import com.swiftly.gateway.fixtures.TestFixturesAdapter;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
@@ -37,12 +37,12 @@ class HealthCheckResourceTest {
         return Stream.of(
                 Arguments.of(
                         "All services UP",
-                        List.of(TestFixtures.upStatus("svc1"), TestFixtures.upStatus("svc2")),
+                        List.of(TestFixturesAdapter.upStatus("svc1"), TestFixturesAdapter.upStatus("svc2")),
                         "UP"
                 ),
                 Arguments.of(
                         "One service DOWN",
-                        List.of(TestFixtures.upStatus("svc1"), TestFixtures.downStatus("svc2")),
+                        List.of(TestFixturesAdapter.upStatus("svc1"), TestFixturesAdapter.downStatus("svc2")),
                         "DOWN"
                 )
         );

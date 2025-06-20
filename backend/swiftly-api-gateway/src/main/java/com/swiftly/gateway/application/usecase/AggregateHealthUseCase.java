@@ -5,13 +5,13 @@ import com.swiftly.gateway.domain.model.Status;
 import com.swiftly.gateway.domain.port.inbound.HealthCheckPort;
 import com.swiftly.gateway.domain.port.outbound.ServiceDiscoveryPort;
 import com.swiftly.gateway.infrastructure.client.DownstreamHealthClient;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.metrics.annotation.Counted;
-import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
@@ -42,8 +42,8 @@ public class AggregateHealthUseCase implements HealthCheckPort {
     }
 
     @Override
-    @Counted(name = "healthChecksTotal", description = "Total number of health check requests")
-    @Timed(name = "healthChecksDuration", description = "Duration of health check execution")
+    @Counted(value = "healthChecksTotal", description = "Total number of health check requests")
+    @Timed(value = "healthChecksDuration", description = "Duration of health check execution")
     public Uni<List<HealthStatus>> checkAll() {
         return serviceDiscoveryPort.getRegisteredServices()
                 .onFailure().recoverWithItem(Collections.emptyList())
