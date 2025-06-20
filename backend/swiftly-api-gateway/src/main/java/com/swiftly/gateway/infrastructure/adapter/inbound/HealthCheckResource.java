@@ -4,6 +4,8 @@ import com.swiftly.gateway.domain.model.HealthStatus;
 import com.swiftly.gateway.domain.model.Status;
 import com.swiftly.gateway.domain.port.inbound.HealthCheckPort;
 import com.swiftly.gateway.infrastructure.adapter.inbound.dto.HealthResponse;
+import io.micrometer.core.annotation.Counted;
+import io.micrometer.core.annotation.Timed;
 import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -12,8 +14,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.metrics.annotation.Counted;
-import org.eclipse.microprofile.metrics.annotation.Timed;
+
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -39,8 +40,8 @@ public class HealthCheckResource {
     }
 
     @GET
-    @Counted(name="health_requests_total", description="Total /health calls")
-    @Timed(name="health_requests_duration", description="Time spent in /health")
+    @Counted(value="health_requests_total", description="Total /health calls")
+    @Timed(value="health_requests_duration", description="Time spent in /health")
     @Operation(summary = "Get gateway health overview")
     @APIResponse(responseCode = "200", description = "Overall UP or DOWN status",
             content = @Content(schema = @Schema(implementation = HealthResponse.class)))

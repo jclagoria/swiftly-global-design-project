@@ -2,7 +2,7 @@ package com.swiftly.gateway.infrastructure.adapter.inbound;
 
 import com.swiftly.gateway.domain.model.SystemStatus;
 import com.swiftly.gateway.domain.port.inbound.SystemStatusPort;
-import com.swiftly.gateway.fixtures.TestFixtures;
+import com.swiftly.gateway.fixtures.TestFixturesAdapter;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -42,7 +42,7 @@ class StatusResourceTest {
     @DisplayName("status should return 200 and correct JSON for healthy")
     void status_shouldReturn200_andCorrectJson_forHealthy(int serviceCount) {
         // Given: a successful SystemStatus with N services
-        SystemStatus healthy = TestFixtures.sampleSystemStatus(serviceCount);
+        SystemStatus healthy = TestFixturesAdapter.sampleSystemStatus(serviceCount);
         given(systemStatusPort.getSystemStatus())
                 .willReturn(Uni.createFrom().item(healthy));
 
@@ -65,7 +65,7 @@ class StatusResourceTest {
     @DisplayName("status should return 503 and error JSON on failure")
     void status_shouldReturn503_andErrorJson_onFailure() {
         // Given: registry throws an exception
-        RuntimeException ex = TestFixtures.sampleException();
+        RuntimeException ex = TestFixturesAdapter.sampleException();
         given(systemStatusPort.getSystemStatus())
                 .willReturn(Uni.createFrom().failure(ex));
 
