@@ -1,15 +1,12 @@
 package com.swiftly.gateway.fixtures;
 
-import com.swiftly.gateway.domain.model.HealthStatus;
-import com.swiftly.gateway.domain.model.RateLimitInfo;
-import com.swiftly.gateway.domain.model.RegistryStatus;
-import com.swiftly.gateway.domain.model.SystemStatus;
+import com.swiftly.gateway.domain.model.*;
 import com.swiftly.gateway.infrastructure.client.DownstreamHealthResponse;
+import io.smallrye.stork.api.Service;
+import org.mockito.Mockito;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -144,5 +141,60 @@ public class TestFixturesAdapter {
         return new RateLimitInfo(route, limit, limit, windowSecs);
     }
 
+    /** A fixed instant for deterministic tests. */
+    public static Instant fixedInstant() {
+        return Instant.parse("2025-06-22T00:00:00Z");
+    }
+
+    /** Builds a services map whose keys are the given names (values are ignored). */
+    public static Map<String, Service> servicesMap(String... serviceNames) {
+        Map<String, Service> map = new LinkedHashMap<>();
+        for (String name : serviceNames) {
+            Service svc = Mockito.mock(Service.class);
+            map.put(name, svc);
+        }
+        return map;
+    }
+
+    /** Builds the expected RouteMetadata for a given service name and instant. */
+    public static RouteMetadata routeMetadata(String serviceName, Instant instant) {
+        return new RouteMetadata(
+                serviceName,
+                "/" + serviceName + "/*",
+                serviceName,
+                "active",
+                Map.of("discovery", "stork"),
+                instant,
+                Optional.of(0L),
+                Optional.of(0.0)
+        );
+    }
+
+    /**
+     * Build a RouteMetadata with given id & status.
+     * Other fields are filled with sensible defaults.
+     */
+    public static RouteMetadata route(String id, String status) {
+        return RouteMetadata.builder()
+                .routeId(id)
+                .pathPattern("/" + id + "/*")
+                .targetService(id)
+                .status(status)
+                .metadata(Map.of())
+                .lastUpdated(fixedInstant())
+                .requestCount(Optional.of(1L))
+                .errorRate(Optional.of(0.0))
+                .build();
+    }
+
+    /**
+     * Build a list of RouteMetadata whose IDs
+     * are "route0", "route1", ... matching the statuses array.
+     */
+    public static List<RouteMetadata> routes(String... statuses) {
+        return IntStream.range(0, statuses.length)
+                .mapToObj(i -> route("route" + i, statuses[i]))
+                .toList();
+    }
 
 }
