@@ -64,6 +64,12 @@
             <artifactId>quarkus-opentelemetry</artifactId>
         </dependency>
 
+        <!-- Reactive REST client with Jackson support -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client-jackson</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-openapi</artifactId>
@@ -72,7 +78,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-logging-json</artifactId>
         </dependency>
-
         <dependency>
             <groupId>io.smallrye.stork</groupId>
             <artifactId>stork-service-discovery-eureka</artifactId>
@@ -84,7 +89,11 @@
             <artifactId>micrometer-core</artifactId>
             <version>1.15.1</version>
         </dependency>
-
+        <dependency>
+            <groupId>io.quarkiverse.opentracing</groupId>
+            <artifactId>quarkus-smallrye-opentracing</artifactId>
+            <version>1.0.0</version>
+        </dependency>
         <dependency>
             <groupId>com.bucket4j</groupId>
             <artifactId>bucket4j_jdk17-core</artifactId>
@@ -102,7 +111,6 @@
             <version>1.6.3</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
