@@ -1,0 +1,41 @@
+feat(openapi): implement aggregated OpenAPI specification (#24)
+
+## What Changed
+- Added OpenApiAggregatorService for consolidating service OpenAPI definitions
+- Implemented OpenApiResource for serving aggregated specifications
+- Added comprehensive testing suite for aggregation logic
+- Updated documentation with OpenAPI integration details
+- Added configuration for OpenAPI endpoints
+
+## Features
+- Aggregates OpenAPI specs from all registered services
+- Maintains service-specific paths and tags
+- Preserves security definitions
+- Supports multiple service versions
+- Provides unified API documentation
+
+## Testing
+- Unit tests for aggregation logic
+- Integration tests with mock services
+- Performance tests for large specification sets
+- Security tests for endpoint access
+
+## Documentation
+- Added OpenAPI integration guide
+- Updated API documentation
+- Added configuration examples
+- Added troubleshooting guide
+
+## Security Considerations
+- Endpoint access control
+- Rate limiting
+- Service authentication
+- Specification validation
+
+## Performance Impact
+- Optimized specification merging
+- Efficient endpoint response
+- Caching strategy for aggregated specs
+
+## Breaking Changes
+None
