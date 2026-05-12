@@ -14,13 +14,17 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.server.resource.web.server.authentication.ServerBearerTokenAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 /**
  * Security configuration for WebFlux applications using JWT-based authentication.
@@ -118,8 +122,6 @@ public class SecurityConfig {
                 )
                 // ──▶ 3) Insert our JWT filter at the AUTHENTICATION phase:
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)
-
-                // 4) Disable Spring’s defaults (we only want JWT, no form‐login/basic/logout)
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .logout(ServerHttpSecurity.LogoutSpec::disable);

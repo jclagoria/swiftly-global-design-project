@@ -142,6 +142,20 @@ CREATE TABLE revoked_tokens (
 ```sql
 CREATE INDEX idx_revoked_tokens_expires_at ON revoked_tokens(expires_at);
 ```
+## 9. Create table to hold reset tokens:
+```sql
+CREATE TABLE password_reset_tokens (
+  token      UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ  NOT NULL
+);
+```
+
+## 10. Index for cleanup:
+```sql  
+CREATE INDEX idx_prt_expires_at ON password_reset_tokens(expires_at);
+``` 
 
 ## 9.1. Create a table for refresh tokens:
 ```sql
