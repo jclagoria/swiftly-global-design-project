@@ -12,11 +12,11 @@ POST	   /users/logout	             Invalidate user session/token
 GET	       /users/{userId}	             Retrieve user profile
 PUT	       /users/{userId}	             Update user details
 DELETE	   /users/{userId}	             Delete user account
-PUT	       /users/change-password	     Update user password
 GET	       /users/preferences/{userId}	 Retrieve user preferences from MongoDB
 PUT	       /users/preferences/{userId}	 Update user preferences
 POST       /users/refresh-token          For secure JWT token renewal, reduce login friction. 
 
+PUT	       /users/change-password	     Update user password . Logic in the app, not implemented yet.
 Not Implemented --POST	   /users/reset-password	     Send reset password link
 Not Implemented --POST	   /users/verify-email	         Verify user email for account activation
 
@@ -90,8 +90,10 @@ POST	     /account/resend-confirmation	   Resend confirmation email
 POST	     /account/reset-password	       Send a password reset email
 POST	     /account/verification-status	   Check if user email is verified
 
-8. API Gateway Service (Spring Cloud Gateway)
+8. API Gateway Service - Develop with Quarkus
 Acts as an entry point for routing requests to microservices.
+Describe dynamic routing based on discovered downstream service metadata.
+Specify that all incoming requests require a valid Authorization: Bearer token, enforced by the gateway.
 
 Endpoints:
 Method	     Endpoint	       Description

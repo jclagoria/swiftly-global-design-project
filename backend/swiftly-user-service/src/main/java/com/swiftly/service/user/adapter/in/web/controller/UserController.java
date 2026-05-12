@@ -1,5 +1,6 @@
 package com.swiftly.service.user.adapter.in.web.controller;
 
+import com.swiftly.service.user.adapter.in.web.mapper.UserPreferencesResponseMapper;
 import com.swiftly.service.user.adapter.in.web.mapper.UserProfileResponseMapper;
 import com.swiftly.service.user.api.dto.*;
 import com.swiftly.service.user.application.port.in.UserService;
@@ -31,6 +32,7 @@ public class UserController {
 
     private final UserService userService;
     private final UserProfileResponseMapper userProfileResponseMapper;
+    private final UserPreferencesResponseMapper userPreferencesResponseMapper;
 
 
     /**
@@ -156,8 +158,7 @@ public class UserController {
     )
     @PostMapping("/login")
     public Mono<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
-        return userService.login(request)
-                .map(LoginResponse::new);
+        return userService.login(request);
     }
 
     /**
@@ -266,15 +267,52 @@ public class UserController {
                 );
     }
 
-    @PutMapping("/change-password")
-    public Mono<OperationResultResponse> changePassword(
-            @Valid @RequestBody ChangePasswordRequest request,
-            @AuthenticationPrincipal Jwt jwt
+    @GetMapping("/{userId}/preferences")
+    public Mono<UserPreferenceResponse> getUserPreferences(@PathVariable UUID userId) {
+        return userService.getUserPreferences(userId)
+                .map(userPreferencesResponseMapper::toResponse);
+    }
+
+    @Operation(
+            summary     = "Update user preferences",
+            description = "Creates or updates the user’s preferences document in MongoDB",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content  = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema    = @Schema(implementation = UpdateUserPreferencesRequest.class)
+                    )
+            ),
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description  = "Updated preferences returned",
+                            content      = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema      = @Schema(implementation = UserPreferenceResponse.class)
+                            )
+                    ),
+                    @ApiResponse(responseCode = "400", description = "Validation failed"),
+                    @ApiResponse(responseCode = "404", description = "User not found")  // optional
+            }
+    )
+    @PutMapping("/{userId}/preferences")
+    public Mono<UserPreferenceResponse> updatePreferences(
+            @PathVariable UUID userId,
+            @Valid @RequestBody UpdateUserPreferencesRequest req
     ) {
-        return Mono.error(new ResponseStatusException(
-                HttpStatus.NOT_IMPLEMENTED,
-                "Change-password functionality is not available yet"
-        ));
+        return userService.updateUserPreferences(userId, req)
+                .map(userPreferencesResponseMapper::toResponse);
+    }
+
+    @Operation(summary="Refresh JWT",
+            description="Exchange a valid refresh token for a new access JWT")
+    @PostMapping("/refresh-token")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<RefreshTokenResponse> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest req
+    ) {
+        return userService.refreshToken(req);
     }
 
 }

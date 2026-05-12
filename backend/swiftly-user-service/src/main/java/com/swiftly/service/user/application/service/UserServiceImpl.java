@@ -1,22 +1,26 @@
 package com.swiftly.service.user.application.service;
 
+import com.swiftly.service.user.adapter.out.persistence.entities.RefreshTokenEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.RevokedTokenEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserEntity;
 import com.swiftly.service.user.adapter.out.persistence.entities.UserProfileEntity;
+import com.swiftly.service.user.adapter.out.persistence.entities.mongo.UserPreferencesEntity;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserPersistenceMapper;
+import com.swiftly.service.user.adapter.out.persistence.mapper.UserPreferencesMapper;
 import com.swiftly.service.user.adapter.out.persistence.mapper.UserProfileMapper;
+import com.swiftly.service.user.adapter.out.persistence.repository.RefreshTokenRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserEntityRepository;
 import com.swiftly.service.user.adapter.out.persistence.repository.UserProfileRepository;
-import com.swiftly.service.user.api.dto.ChangePasswordRequest;
-import com.swiftly.service.user.api.dto.LoginRequest;
-import com.swiftly.service.user.api.dto.RegisterUserRequest;
-import com.swiftly.service.user.api.dto.UpdateUserRequest;
+import com.swiftly.service.user.adapter.out.persistence.repository.mongo.UserPreferencesRepository;
+import com.swiftly.service.user.api.dto.*;
 import com.swiftly.service.user.application.port.in.UserService;
 import com.swiftly.service.user.config.security.JwtTokenProvider;
 import com.swiftly.service.user.domain.exception.EmailAlreadyInUseException;
 import com.swiftly.service.user.domain.exception.InvalidCredentialsException;
 import com.swiftly.service.user.domain.exception.UserNotFoundException;
+import com.swiftly.service.user.domain.exception.UserPreferencesNotFoundException;
 import com.swiftly.service.user.domain.model.UserModel;
+import com.swiftly.service.user.domain.model.UserPreferencesModel;
 import com.swiftly.service.user.domain.model.UserProfileModel;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,11 +41,14 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserEntityRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final UserPreferencesRepository userPreferencesRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserPersistenceMapper userMapper;
     private final UserProfileMapper profileMapper;
+    private final UserPreferencesMapper preferencesMapper;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserProfileRepository userProfileRepository;
 
     private final R2dbcEntityTemplate r2dbcTemplate;
 
@@ -93,7 +101,7 @@ public class UserServiceImpl implements UserService {
      * @return a Mono emitting the JWT token if login is successful, or an error if login fails
      */
     @Override
-    public Mono<String> login(LoginRequest request) {
+    public Mono<LoginResponse> login(LoginRequest request) {
         // Attempt to find the user by email
         return userRepository.findByEmailAndDeletedIsFalse(request.getEmail())
                 // If no user is found, return an InvalidCredentialsException
@@ -106,8 +114,16 @@ public class UserServiceImpl implements UserService {
                     // If the passwords match, create a JWT token for the user and log it
                     String token = jwtTokenProvider.createToken(user.getEmail());
                     log.info("User logged in successfully: {}", user.getEmail());
+
+                    Instant now = Instant.now();
+                    Instant expiry = now.plus(Duration.ofDays(15));
+                    RefreshTokenEntity entityRT = new RefreshTokenEntity(user.getId(), now, expiry, false);
+
                     // Return the JWT token
-                    return Mono.just(token);
+                    return refreshTokenRepository.save(entityRT).map(refreshTokenEntity -> {
+                        log.info("Refresh token created for user: {}", user.getEmail());
+                        return new LoginResponse(token, refreshTokenEntity.getToken().toString());
+                    });
                 })
                 // If the login is successful, log the success
                 .doOnSuccess(token -> log.info("User {} logged in successfully", request.getEmail()))
@@ -210,25 +226,68 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<Void> changePassword(UUID userId, ChangePasswordRequest req) {
-        return userRepository.findByIdAndDeletedIsFalse(userId)
-                .switchIfEmpty(Mono.error(new UserNotFoundException(userId)))
+    public Mono<UserPreferencesModel> getUserPreferences(UUID userId) {
+        return userPreferencesRepository.findByUserId(userId)
+                .switchIfEmpty(Mono.error(new UserPreferencesNotFoundException(userId)))
+                .map(preferencesMapper::toDomain);
+    }
+
+    @Override
+    public Mono<UserPreferencesModel> updateUserPreferences(UUID userId, UpdateUserPreferencesRequest req) {
+        Instant now = Instant.now();
+        return userPreferencesRepository.findByUserId(userId)
+                .defaultIfEmpty(new UserPreferencesEntity(null, userId, null, null,
+                        null, null, null, now ,null)
+                )
                 .flatMap(entity -> {
-                    if (!passwordEncoder
-                            .matches(req.getOldPassword(), entity.getPasswordHash()))
-                        {
-                            return Mono.error(new InvalidCredentialsException());
-                        }
-                    entity.setPasswordHash(passwordEncoder.encode(req.getNewPassword()));
-                    return userRepository.save(entity).then();
-                }).doOnSuccess(savedUser -> {
-                    log.info("Password changed successfully for user: {}", userId);
-                }).doOnError(err -> {
-                    if (err instanceof InvalidCredentialsException) {
-                        log.warn("Invalid credentials provided for user: {}", userId);
-                    } else {
-                        log.error("Error changing password for user {}: {}", userId, err.getMessage());
+                    entity.setLanguage(req.getLanguage());
+                    entity.setTimezone(req.getTimezone());
+                    entity.setDefaultCurrency(req.getDefaultCurrency());
+                    entity.setNotifications(
+                            new UserPreferencesEntity.Notifications(
+                                    req.getNotifications().isEmail(),
+                                    req.getNotifications().isSms(),
+                                    req.getNotifications().isPush(),
+                                    req.getNotifications().isInApp()
+                            )
+                    );
+                    entity.setPreferences(
+                            new UserPreferencesEntity.Preferences(
+                                    req.getPreferences().isDailyReport(),
+                                    req.getPreferences().isFraudAlerts(),
+                                    req.getPreferences().getMaxTransactionAmt()
+                            )
+                    );
+                    entity.setUpdatedAt(now);
+                    return userPreferencesRepository.save(entity);
+                })
+                .map(preferencesMapper::toDomain);
+    }
+
+    @Override
+    public Mono<RefreshTokenResponse> refreshToken(RefreshTokenRequest request) {
+        UUID refreshTokenId = UUID.fromString(request.getRefreshToken());
+        return refreshTokenRepository.findByTokenAndRevokedFalse(refreshTokenId)
+                .switchIfEmpty(Mono.error(new InvalidCredentialsException()))
+                .flatMap(rt -> {
+                    if (rt.getExpiresAt().isBefore(Instant.now())) {
+                        return Mono.error(new InvalidCredentialsException());
                     }
+                    rt.setRevoked(true);
+                    return refreshTokenRepository.save(rt)
+                            .then(Mono.just(rt));
+                }).flatMap(rt -> {
+                    String newJWT = jwtTokenProvider.createToken(rt.getUserId().toString());
+                    Instant now = Instant.now();
+                    Instant expiry = now.plus(Duration.ofDays(15));
+                    RefreshTokenEntity refreshTokenResponse =
+                            new RefreshTokenEntity(rt.getUserId(), now, expiry, false);
+
+                    return refreshTokenRepository.save(refreshTokenResponse)
+                            .map(refreshTokenEntity -> {
+                                log.info("New refresh token created for user: {}", rt.getUserId());
+                                return new RefreshTokenResponse(newJWT, refreshTokenEntity.getToken().toString());
+                            });
                 });
     }
 

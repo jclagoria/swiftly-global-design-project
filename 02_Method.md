@@ -1,6 +1,10 @@
 === Architecture
 
-Backend: Java 21 with Spring Boot, leveraging WebFlux for reactive processing and Hexagonal Architecture for modularity.
+Backend: 
+Java 21 
+Spring Boot, leveraging WebFlux for reactive processing.
+Quarkus
+Hexagonal Architecture for modularity
 
 Database:
 
@@ -81,6 +85,10 @@ Logs all transactions and system activities.
 Uses ELK Stack (Elasticsearch, Logstash, Kibana) for log analysis.
 
 Ensures regulatory compliance through audit trails.
+
+API Gateway
+Dynamic routing via the Kubernetes client (or alternative registry), and the global JWT filter for Authorization: Bearer tokens.
+Highlight health, status, rate-limits, and metrics endpoints implemented with SmallRye Health and Micrometer.
 
 === Frontend
 

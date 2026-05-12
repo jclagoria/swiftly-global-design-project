@@ -1,10 +1,8 @@
 package com.swiftly.service.user.application.port.in;
 
-import com.swiftly.service.user.api.dto.ChangePasswordRequest;
-import com.swiftly.service.user.api.dto.LoginRequest;
-import com.swiftly.service.user.api.dto.RegisterUserRequest;
-import com.swiftly.service.user.api.dto.UpdateUserRequest;
+import com.swiftly.service.user.api.dto.*;
 import com.swiftly.service.user.domain.model.UserModel;
+import com.swiftly.service.user.domain.model.UserPreferencesModel;
 import com.swiftly.service.user.domain.model.UserProfileModel;
 import reactor.core.publisher.Mono;
 
@@ -31,7 +29,7 @@ public interface UserService {
      * @param request the login request containing user credentials
      * @return a Mono emitting the UserModel of the successfully logged-in user
      */
-    Mono<String> login(LoginRequest request);
+    Mono<LoginResponse> login(LoginRequest request);
 
     /**
      * Logs out an existing user based on the provided JWT token.
@@ -67,14 +65,23 @@ public interface UserService {
     Mono<Void> deleteUser(UUID userId);
 
     /**
-     * Changes the password of an existing user.
+     * Retrieves a user's preferences based on the provided user ID.
      *
-     * Validates the old password, and updates it with the new password if valid.
-     * Logs the result of the operation.
-     *
-     * @param userId the UUID of the user whose password is to be changed
-     * @param req the request containing the old and new passwords
-     * @return a Mono emitting a void value, indicating the password change was successful
+     * @param userId the UUID of the user whose preferences are to be retrieved
+     * @return a Mono emitting the UserPreferencesModel associated with the given user ID
      */
-    Mono<Void> changePassword(UUID userId, ChangePasswordRequest req);
+    Mono<UserPreferencesModel> getUserPreferences(UUID userId);
+
+    /**
+     * Updates an existing user's preferences based on the provided request.
+     *
+     * @param userId                the UUID of the user whose preferences are to be updated
+     * @param updateUserPreferencesRequest the request containing the new user preferences
+     * @return a Mono emitting the UserPreferencesModel associated with the given user ID
+     *         after the update operation
+     */
+    Mono<UserPreferencesModel> updateUserPreferences(UUID userId,
+                                                     UpdateUserPreferencesRequest updateUserPreferencesRequest);
+
+    Mono<RefreshTokenResponse> refreshToken(RefreshTokenRequest request);
 }
